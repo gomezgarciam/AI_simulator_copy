@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.aider*
+__pycache__/
+.aider.tags.cache.v4
+.aider.chat.history.md
+.aider.input.history
+.venv/
