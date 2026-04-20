@@ -7,3 +7,6 @@ __pycache__/
 .aider.input.history
 .venv/
 .env
+*.log
+hello_world.py
+test_import.py

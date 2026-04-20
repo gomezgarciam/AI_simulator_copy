@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Mode - Sprint 2</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: transparent;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+        max-width: 100%;
+      }
+      #chat-history {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .bubble {
+        padding: 10px 15px;
+        border-radius: 15px;
+        max-width: 80%;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .user {
+        align-self: flex-end;
+        background: #007bff;
+        color: white;
+        border-bottom-right-radius: 2px;
+      }
+      .alex {
+        align-self: flex-start;
+        background: #333;
+        color: white;
+        border-bottom-left-radius: 2px;
+      }
+      .interim {
+        opacity: 0.6;
+        font-style: italic;
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      button {
+        background-color: #ff4b4b;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      button:hover { background-color: #ff3333; transform: scale(1.02); }
+      button.recording { background-color: #333; animation: pulse 1.5s infinite; }
+      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+      .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+      .status-dot.active { background: #28a745; box-shadow: 0 0 5px #28a745; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <button id="record-btn">Iniciar Sesión en Vivo</button>
+        <div id="status-dot" class="status-dot"></div>
+        <span id="status-text" style="font-size: 12px; color: #888;">Desconectado</span>
+      </div>
+      <div id="chat-history">
+        <div class="bubble alex">Hola, soy Alex. Estoy listo para escucharte.</div>
+      </div>
+    </div>
+
+    <script>
+      // Minimal Streamlit Bridge
+      const Streamlit = {
+        setComponentReady: () => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1}, "*"),
+        setFrameHeight: () => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setFrameHeight", height: document.body.scrollHeight}, "*"),
+      };
+
+      const recordBtn = document.getElementById("record-btn");
+      const chatHistory = document.getElementById("chat-history");
+      const statusDot = document.getElementById("status-dot");
+      const statusText = document.getElementById("status-text");
+
+      let audioContext, processor, input, stream, socket, isRecording = false;
+      let currentInterimBubble = null;
+      
+      // Metadatos que vendrán de Streamlit (inyectados vía render)
+      let sessionMetadata = {
+        target_company: "Google",
+        role: "CTO",
+        language: "Spanish"
+      };
+
+      // Escuchar argumentos de Streamlit
+      window.addEventListener("message", (event) => {
+        if (event.data.type === "streamlit:render") {
+          sessionMetadata = event.data.args.metadata || sessionMetadata;
+        }
+      });
+
+      Streamlit.setComponentReady();
+      setInterval(Streamlit.setFrameHeight, 500);
+
+      function addBubble(text, side, isInterim = false) {
+        if (isInterim && currentInterimBubble) {
+          currentInterimBubble.innerText = text;
+          return;
+        }
+        
+        const b = document.createElement("div");
+        b.className = `bubble ${side} ${isInterim ? 'interim' : ''}`;
+        b.innerText = text;
+        chatHistory.appendChild(b);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        
+        if (isInterim) currentInterimBubble = b;
+        else currentInterimBubble = null;
+        
+        return b;
+      }
+
+      async function playBase64Audio(base64) {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+        
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      }
+
+      async function startRecording() {
+        // Limpiar burbujas anteriores al iniciar
+        chatHistory.innerHTML = '<div class="bubble alex">Hola, soy Alex. Estoy listo para escucharte.</div>';
+        currentInterimBubble = null;
+        
+        isRecording = true;
+        recordBtn.innerText = "Detener Sesión";
+        recordBtn.classList.add("recording");
+        statusText.innerText = "Conectando...";
+
+        try {
+          const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+          const hostname = window.location.host;
+          let wsUrl = `${protocol}//${hostname.replace("8080", "8000")}/ws/live-transcribe`;
+          
+          if (hostname.includes("cloudshell.dev")) {
+             wsUrl = `wss://${hostname.replace("8080-cs-", "8000-cs-")}/ws/live-transcribe`;
+          }
+
+          socket = new WebSocket(wsUrl);
+
+          socket.onopen = async () => {
+            statusDot.classList.add("active");
+            statusText.innerText = "En Vivo";
+            socket.send(JSON.stringify({...sessionMetadata, sample_rate: 16000}));
+
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            input = audioContext.createMediaStreamSource(stream);
+            processor = audioContext.createScriptProcessor(4096, 1, 1);
+            
+            processor.onaudioprocess = (e) => {
+              if (!isRecording || socket.readyState !== WebSocket.OPEN) return;
+              const inputData = e.inputBuffer.getChannelData(0);
+              const pcmData = new Int16Array(inputData.length);
+              for (let i = 0; i < inputData.length; i++) {
+                const s = Math.max(-1, Math.min(1, inputData[i]));
+                pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+              }
+              socket.send(pcmData.buffer);
+            };
+
+            input.connect(processor);
+            processor.connect(audioContext.destination);
+          };
+
+          socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "user_transcript") {
+              addBubble(data.transcript, "user", !data.is_final);
+            } else if (data.type === "alex_response") {
+              addBubble(data.transcript, "alex");
+              if (data.audio) playBase64Audio(data.audio);
+            }
+          };
+
+          socket.onclose = stopRecording;
+          socket.onerror = stopRecording;
+
+        } catch (err) {
+          console.error(err);
+          stopRecording();
+        }
+      }
+
+      function stopRecording() {
+        isRecording = false;
+        recordBtn.innerText = "Iniciar Sesión en Vivo";
+        recordBtn.classList.remove("recording");
+        statusDot.classList.remove("active");
+        statusText.innerText = "Desconectado";
+        if (processor) processor.disconnect();
+        if (audioContext) audioContext.close();
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        if (socket) socket.close();
+      }
+
+      recordBtn.onclick = () => isRecording ? stopRecording() : startRecording();
+    </script>
+  </body>
+</html>

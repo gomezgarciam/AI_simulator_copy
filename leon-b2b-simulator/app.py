@@ -17,6 +17,7 @@ from src.ui.components import (
     section_title,
     render_metric_strip,
     render_glass_tip,
+    live_mic_recorder,
 )
 from src.services.pdf_service import (
     summarize_text,
@@ -65,6 +66,9 @@ st.set_page_config(
 
 initialize_session_state()
 
+# --- NEW: SPRINT 1 MODE SELECTOR ---
+mode = st.sidebar.radio("Select Mode", ("Classic MVP", "Live Mode (Sprint 1 Test)"))
+
 # =========================================================
 # 2. CLIENTS / RESOURCES
 # =========================================================
@@ -108,6 +112,26 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # =========================================================
 # 4. SETUP SCREEN
 # =========================================================
+if mode == "Live Mode (Sprint 1 Test)":
+    render_header(info_text="Testing live streaming transcription.")
+    st.title("Live Mode (Sprint 2 Interaction)")
+    st.info("Start recording to interact with Alex in real-time.")
+    
+    # Preparamos metadatos reales
+    metadata = {
+        "target_company": st.session_state.get("target_company", "Google"),
+        "role": st.session_state.get("role", "CTO"),
+        "language": st.session_state.get("language", "English")
+    }
+    
+    # Render our custom component with metadata
+    transcript = live_mic_recorder(metadata=metadata)
+    
+    if transcript:
+        st.success(f"Final session captured.")
+    
+    st.stop()
+
 if "target_company" not in st.session_state:
     T_EN = UI_TEXTS["English"]
     

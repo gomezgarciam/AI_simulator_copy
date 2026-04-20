@@ -6,4 +6,6 @@ google-cloud-storage
 pydub
 pandas
 pypdf
+fastapi
+uvicorn[standard]
 python-dotenv

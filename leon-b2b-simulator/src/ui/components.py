@@ -1,9 +1,26 @@
 import base64
+import os
 from pathlib import Path
 from typing import Optional
 
 import streamlit as st
+import streamlit.components.v1 as components
 from src.ui.texts import UI_TEXTS
+
+def live_mic_recorder(metadata: dict = None):
+    """
+    Bridge for the custom Live Mode microphone component.
+    """
+    component_path = "leon-b2b-simulator/components/mic_recorder/frontend/public"
+    if not os.path.exists(component_path):
+        component_path = "components/mic_recorder/frontend/public"
+
+    _component_func = components.declare_component(
+        "live_mic_recorder",
+        path=component_path
+    )
+    
+    return _component_func(metadata=metadata)
 
 def get_image_base64(path: str) -> Optional[str]:
     try:
