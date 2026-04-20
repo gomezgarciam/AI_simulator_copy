@@ -1,5 +1,6 @@
 from google.cloud import speech
 from google.cloud import texttospeech
+from src.config.settings import GOOGLE_CLOUD_PROJECT
 
 
 LANGUAGE_CODES = {
@@ -16,7 +17,11 @@ VOICE_NAMES = {
 
 
 def get_speech_clients():
-    return speech.SpeechClient(), texttospeech.TextToSpeechClient()
+    client_options = {"quota_project_id": GOOGLE_CLOUD_PROJECT}
+    return (
+        speech.SpeechClient(client_options=client_options),
+        texttospeech.TextToSpeechClient(client_options=client_options),
+    )
 
 
 def get_language_code(language: str) -> str:

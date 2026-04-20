@@ -2,66 +2,90 @@
 
 ## 1. System Overview
 
-This application is a sophisticated B2B sales roleplaying simulator designed to train Business Development Representatives (BDRs). It leverages a suite of Google Cloud AI services to create an interactive, voice-driven learning experience.
+This application is a sophisticated B2B sales roleplaying simulator designed to train Business Development Representatives (BDRs). It leverages Google Cloud AI services to create an interactive, voice-driven learning experience with a dual-agent architecture.
 
-The core functionality allows a user to simulate a sales call with "Alex," an AI persona whose role (e.g., CTO, CFO) and company are configurable. The user interacts with Alex using their voice. The application's workflow is as follows:
+### Core Experience
+1.  **Alex (The Prospect):** An AI persona (CTO, CFO, CEO, etc.) that the user interacts with via voice. Alex is designed to be a realistic, skeptical enterprise stakeholder.
+2.  **Sales Assistant (The Coach):** A separate RAG-powered agent available during the simulation to provide real-time coaching, objection handling, or internal product knowledge.
 
-1.  **Voice Input:** The user records their sales pitch.
-2.  **Speech-to-Text:** The audio is transcribed into text using the Google Cloud Speech-to-Text API.
-3.  **AI Roleplay:** The transcribed text is sent as a prompt to a Google Gemini model. The model is guided by a detailed system prompt that defines Alex's personality as an impatient but professional executive who is skeptical of generic pitches.
-4.  **Business Logic Evaluation:** The AI's primary goal is to evaluate the BDR's ability to articulate the specific business value of Google Cloud Platform (GCP) services. The "winning condition" is for the user to explain the implementation and benefits of at least three distinct GCP services.
-5.  **Text-to-Speech:** The AI's generated response is converted back into audio using the Google Cloud Text-to-Speech API.
-6.  **Feedback Loop:** When the simulation ends, the AI generates a structured feedback table, rating the user's performance across several categories and providing a final summary.
+### Workflow
+1.  **Voice Input:** User records their sales pitch via Streamlit's audio input.
+2.  **Transcription:** Handled by Google Cloud Speech-to-Text.
+3.  **Roleplay Engine:** Transcribed text is processed by `gemini-2.5-flash`. Alex responds based on detailed role-specific guidance.
+4.  **RAG Knowledge:** The Sales Assistant retrieves context from internal documents (FY26 Plays, battlecards) stored in Google Cloud Storage.
+5.  **Text-to-Speech:** Alex's responses are converted back to audio using Google Cloud Text-to-Speech.
+6.  **Feedback:** At the end of the session, a structured JSON-based feedback table is generated.
 
-The application is multilingual, supporting English, Spanish, and Portuguese for both the UI and the AI interaction.
+The application is fully multilingual, with deep support for English, Spanish, and Portuguese.
 
 ## 2. Architecture & Tech Stack
 
-The application is built entirely on a Python stack, designed for rapid development and deployment.
-
--   **Language:** Python 3.9
--   **Web Framework:** Streamlit, used to create the interactive web-based user interface.
--   **Core AI & Cloud Services:**
-    -   **`google-genai`:** Client library for the Gemini Large Language Model (`gemini-1.5-flash`), which powers the AI's conversational logic.
-    -   **`google-cloud-speech`:** Used for high-accuracy voice transcription.
-    -   **`google-cloud-texttospeech`:** Used to synthesize natural-sounding voice responses for the AI persona.
--   **Audio Processing:**
-    -   **`pydub`:** A utility for handling audio format conversions, essential for preparing the user's recorded audio for the Speech-to-Text API. `ffmpeg` is a required system dependency for this library.
--   **Data Handling:**
-    -   **`pandas`:** Used to structure and display the final feedback report in a clean, readable table format.
+-   **Language:** Python 3.9+
+-   **Frontend:** Streamlit (with custom Glassmorphism CSS styles).
+-   **AI Services (Google GenAI SDK & Cloud APIs):**
+    -   `google-genai`: Powers the Gemini LLM for roleplay and assistant logic.
+    -   `google-cloud-speech`: High-accuracy audio transcription.
+    -   `google-cloud-texttospeech`: Natural voice synthesis.
+    -   `google-cloud-storage`: Used for RAG knowledge base retrieval.
+-   **Data & Document Processing:**
+    -   `rag`: Custom implementation for document loading (`pypdf`), chunking, and index-based retrieval.
+    -   `pydub`: Audio format conversion (requires `ffmpeg`).
+    -   `pandas`: Structuring feedback reports.
 
 ## 3. Infrastructure & Deployment
 
-The architecture is designed for a serverless, container-based deployment on Google Cloud Platform.
+-   **Platform:** Google Cloud Platform (Project: `b2b-agent-485013`, Region: `us-central1`).
+-   **Deployment:** Google Cloud Run (Service: `simulator-b2b`).
+-   **Containerization:** Docker (`python:3.9-slim` base, includes `ffmpeg` installation).
+-   **Storage:** GCS Bucket `bdr-simulator-internal-docs` for internal coaching material.
 
--   **Deployment Target:** Google Cloud Run, which provides a scalable, managed environment for running containers.
--   **Containerization:** The application is packaged as a Docker image. The `Dockerfile` is configured to:
-    -   Use a lightweight `python:3.9-slim` base image.
-    -   Install necessary system dependencies, notably `ffmpeg`.
-    -   Install all Python packages from `requirements.txt`.
-    -   Run the Streamlit application, correctly configured to listen on the port provided by Cloud Run (`$PORT`).
--   **GCP Environment:** The application is hardcoded to align with the specified deployment environment:
-    -   **Project ID:** `b2b-agent-485013`
-    -   **Region:** `us-central1`
-    -   **Cloud Run Service:** The setup is consistent with a service named `simulator-b2b`.
-
-## 4. Project Structure
-
-The codebase is organized into a few key files, reflecting a typical Streamlit application structure.
+## 4. Project Structure (Modular src/)
 
 ```
 /
-├── app.py                  # Main application entry point: UI, state management, and API orchestration.
-├── prompts.py              # Core business logic: Defines the AI's persona and evaluation criteria.
-├── requirements.txt        # Lists all Python package dependencies.
-├── Dockerfile              # Instructions for building the production Docker container for Cloud Run.
-├── check_models.py         # A utility script for checking available Gemini models.
-└── .gcloudignore           # Defines files to be excluded from GCP deployments.
+├── app.py                  # Main entry point, UI orchestration, and state management.
+├── requirements.txt        # Project dependencies (streamlit, google-genai, etc.).
+├── Dockerfile              # Container configuration for Cloud Run.
+├── .gcloudignore           # Exclusions for GCP deployment.
+└── src/
+    ├── config/
+    │   └── settings.py     # Global constants, bucket names, and model IDs.
+    ├── engines/
+    │   ├── roleplay_engine.py  # Logic for Alex's conversation session.
+    │   └── assistant_engine.py # Logic for the RAG-based coaching assistant.
+    ├── prompts/
+    │   ├── roleplay.py     # System prompts for Alex (CTO/CFO/CEO logic).
+    │   └── assistant.py    # System prompts for the Sales Assistant.
+    ├── rag/
+    │   ├── loader.py       # GCS document loading.
+    │   ├── chunking.py     # Text splitting and indexing.
+    │   └── context_builder.py # Context assembly for LLM prompts.
+    ├── services/
+    │   ├── audio_service.py # Pydub utilities.
+    │   ├── genai_service.py # Gemini client initialization.
+    │   ├── speech_service.py # STT and TTS wrappers.
+    │   └── pdf_service.py   # PDF text extraction and summarization.
+    ├── ui/
+    │   ├── components.py   # Reusable Streamlit UI elements.
+    │   ├── styles.py       # Glassmorphism and layout CSS.
+    │   └── texts.py        # Multilingual UI strings (EN/ES/PT).
 ```
 
--   **`app.py`:** The heart of the application, managing the user interface, session state, and the sequence of calls to Google's AI APIs.
--   **`prompts.py`:** A critical module that encapsulates the simulation's business logic by generating the system prompt for the Gemini model.
+## 5. Key Configuration (src/config/settings.py)
 
-## 5. Git Context
+The application uses an environment-driven configuration model to ensure project isolation and security.
 
-This context document reflects the state of the codebase as of the `example-branch` in the `leon-b2b-simulator` repository.
+-   **Environment Management:** Handled via `python-dotenv`.
+-   **Required Variables:**
+    -   `GOOGLE_CLOUD_PROJECT`: The target GCP Project ID.
+    -   `INTERNAL_DOCS_BUCKET`: The GCS bucket containing training materials.
+-   **Sensible Defaults:**
+    -   `GOOGLE_CLOUD_LOCATION`: `us-central1`.
+    -   `MODEL_ID`: `gemini-2.5-flash`.
+    -   `INTERNAL_DOCS_PREFIX`: `Plays/`.
+    -   `ASSISTANT_TOP_K`: 4.
+    -   `ROLEPLAY_HISTORY_MAX_TURNS`: 12.
+
+**Local Setup:** Copy `.env.example` to `.env` and fill in your personal project details.
+**Cloud Run / GKE:** Set the corresponding environment variables in the service configuration.
+

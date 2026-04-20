@@ -109,21 +109,18 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # 4. SETUP SCREEN
 # =========================================================
 if "target_company" not in st.session_state:
-    lang_choice = st.selectbox(
-        "Language / Idioma / Idioma:",
-        ["English", "Spanish", "Portuguese"],
-        label_visibility="collapsed",
-        key="language_selector",
-    )
-    T = UI_TEXTS[lang_choice]
-
+    T_EN = UI_TEXTS["English"]
+    
+    # We first render the header which will now contain the selector
     render_header(
-    show_logo=True,
-    info_text=T.get(
-        "simulator_info",
-        "This simulator recreates enterprise sales conversations and provides real-time guidance."
+        info_text=T_EN.get(
+            "simulator_info",
+            "This simulator recreates enterprise sales conversations and provides real-time guidance."
+        )
     )
-)
+
+    lang_choice = st.session_state.get("language_selector", "English")
+    T = UI_TEXTS[lang_choice]
 
     st.markdown(
         f"""

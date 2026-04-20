@@ -4,63 +4,56 @@ from typing import Optional
 
 import streamlit as st
 
-def find_logo_path() -> Optional[str]:
-    candidates = [
-        "1.png",
-        "logo.png",
-        "assets/1.png",
-        "assets/logo.png",
-        "./1.png",
-        "./logo.png",
-    ]
-    for candidate in candidates:
-        if Path(candidate).exists():
-            return candidate
-    return None
-
-
-
-def render_header(show_logo: bool = True, info_text: str = ""):
-    logo_html = ""
-
-    if show_logo:
-        logo_path = find_logo_path()
-        tooltip = info_text or "This simulator recreates enterprise sales roleplays with Alex and pairs them with a live assistant grounded in FY26 plays, battle cards, and any PDF you upload."
-        tooltip_html = f'<span class="custom-tooltip-icon">?<span class="custom-tooltip-box">{tooltip}</span></span>'
-        if logo_path:
-            try:
-                with open(logo_path, "rb") as logo_file:
-                    encoded_logo = base64.b64encode(logo_file.read()).decode("utf-8")
-                logo_html = f'<div class="hero-logo-shell">{tooltip_html}<img class="hero-inline-logo" src="data:image/png;base64,{encoded_logo}" alt="Logo" /></div>'
-            except Exception:
-                logo_html = f'<div class="hero-logo-shell">{tooltip_html}<div class="hero-inline-logo-fallback">GCP</div></div>'
-        else:
-            logo_html = f'<div class="hero-logo-shell">{tooltip_html}<div class="hero-inline-logo-fallback">GCP</div></div>'
-
-    st.markdown(
-        f"""
-<div class="hero-card">
-  <div class="hero-grid">
-    <div class="hero-copy">
-      <div class="hero-eyebrow">Executive Demo Experience</div>
-      <div class="hero-title">AI Sales Simulator</div>
-      <div class="hero-subtitle">
-        A premium roleplay environment for enterprise discovery, objection handling, and positioning — powered by AI buyer simulation and official FY26 sales knowledge.
-      </div>
-      <div class="hero-badges">
-        <span class="hero-badge">Multilingual</span>
-        <span class="hero-badge">Voice Enabled</span>
-        <span class="hero-badge">FY26 Plays</span>
-        <span class="hero-badge">Battlecards</span>
-        <span class="hero-badge">Live Coaching</span>
-      </div>
-    </div>
-    <div class="hero-visual">{logo_html}</div>
-  </div>
-</div>
-        """,
-        unsafe_allow_html=True
-    )
+def render_header(info_text: str = ""):
+    # We use a container to wrap the entire hero card
+    with st.container(border=True):
+        # We place a hidden anchor that tells our CSS to style this container as the Hero Card
+        st.markdown('<div id="hero-card-anchor"></div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="hero-eyebrow">Executive Demo Experience</div>', unsafe_allow_html=True)
+        
+        # Title Row: Title, Tooltip, and Language Selector
+        title_col, select_col = st.columns([4, 1])
+        
+        with title_col:
+            tooltip_html = ""
+            if info_text:
+                tooltip_html = f'<div class="custom-tooltip-icon inline-tooltip">?<div class="custom-tooltip-box">{info_text}</div></div>'
+            
+            st.markdown(
+                f"""
+                <div class="hero-title-container">
+                    <div class="hero-title">AI Sales Simulator</div>
+                    {tooltip_html}
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            
+        with select_col:
+            st.selectbox(
+                "Select Language",
+                ["English", "Spanish", "Portuguese"],
+                label_visibility="collapsed",
+                key="language_selector",
+            )
+        
+        # Subtitle and Badges with professional spacing
+        st.markdown(
+            f"""
+            <div class="hero-subtitle">
+                A premium roleplay environment for enterprise discovery, objection handling, and positioning — powered by AI buyer simulation and official FY26 sales knowledge.
+            </div>
+            <div class="hero-badges">
+                <div class="hero-badge">Multilingual</div>
+                <div class="hero-badge">Voice Enabled</div>
+                <div class="hero-badge">FY26 Plays</div>
+                <div class="hero-badge">Battlecards</div>
+                <div class="hero-badge">Live Coaching</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 
 def section_title(title: str, subtitle: Optional[str] = None, info: Optional[str] = None):
@@ -81,9 +74,9 @@ def section_title(title: str, subtitle: Optional[str] = None, info: Optional[str
 
 
 def render_metric_strip(company: str, role: str, language: str, T=None):
-    company_label = T["company"] if T and "company" in T else "Company"
-    role_label = T["role"] if T and "role" in T else "Role"
-    language_label = T["language"] if T and "language" in T else "Language"
+    company_label = (T["company"] if T and "company" in T else "Company") + ": "
+    role_label = (T["role"] if T and "role" in T else "Role") + ": "
+    language_label = (T["language"] if T and "language" in T else "Language") + ": "
     st.markdown(
         f"""
         <div class="metric-strip">
