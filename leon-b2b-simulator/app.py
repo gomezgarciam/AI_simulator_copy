@@ -289,12 +289,13 @@ st.session_state.show_assistant = True
 # =========================================================
 # 6. TOP HEADER
 # =========================================================
-render_header(show_logo=True, info_text=T["simulator_info"])
+render_header(info_text=T["simulator_info"])
 
 render_metric_strip(
     st.session_state.target_company,
     st.session_state.role,
     st.session_state.language,
+    T=T
 )
 
 st.markdown(
