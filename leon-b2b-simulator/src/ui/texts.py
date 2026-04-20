@@ -86,7 +86,10 @@ UI_TEXTS = {
         "knowledge_badge_desc": "Connected to official Plays & Battle Cards",
         "no_docs_loaded": "No FY26 internal documents were loaded from GCS.",
         "session_caption": "Live simulation with Alex",
-        "simulator_info": "This simulator recreates enterprise sales conversations and provides real-time guidance."
+        "simulator_info": "This simulator recreates enterprise sales conversations and provides real-time guidance.",
+        
+        "hero_subtitle": "A professional training framework engineered to sharpen high-stakes B2B discovery through realistic buyer behavioral simulation. Success in this challenging environment is achieved only by strategically presenting at least three Google services, each tailored to the company's specific business context—integrating official Google FY26 Campaign Plays Sales Knowledge.",
+        "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"]
     },
 
     "Spanish": {
@@ -176,7 +179,10 @@ UI_TEXTS = {
         "knowledge_badge_desc": "Conectado a Plays y Battle Cards oficiales",
         "no_docs_loaded": "No se cargaron documentos internos FY26 desde GCS.",
         "session_caption": "Simulación en vivo con Alex",
-        "simulator_info": "Este simulador recrea conversaciones de ventas enterprise y ofrece guía en tiempo real."
+        "simulator_info": "Este simulador recrea conversaciones de ventas enterprise y ofrece guía en tiempo real.",
+        
+        "hero_subtitle": "Un marco de entrenamiento profesional diseñado para perfeccionar discovery B2B de alto nivel mediante simulación realista del comportamiento de compradores. El éxito en este entorno desafiante se logra solo al presentar estratégicamente al menos tres servicios de Google, cada uno adaptado al contexto de negocio específico de la empresa—integrando el Conocimiento de Ventas oficial de Google FY26 Campaign Plays.",
+        "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"]
     },
 
     "Portuguese": {
@@ -185,7 +191,7 @@ UI_TEXTS = {
         "setup_subtitle": "Configure a persona do comprador, o contexto da conta e os insumos antes de iniciar a simulação.",
 
         "company_q": "Empresa alvo:",
-        "company_placeholder": "Ex: Uber, Mercado Livre, Nubank",
+        "company_placeholder": "Ex: Uber, Mercado Libre, Nubank",
         "company_required": "Digite o nome de uma empresa.",
 
         "role_q": "Selecione o papel de Alex:",
@@ -211,7 +217,7 @@ UI_TEXTS = {
         "listening": "Ouvindo...",
         "input_label": "Fale com Alex:",
         "no_audio_heard": "Não consegui ouvir você claramente. Poderia repetir?",
-        "audio_invalid": "Nota do sistema: a gravação de áudio excede o limite de 60 segundos ou é inválida.",
+        "audio_invalid": "Nota do sistema: a gravação de audio excede o limite de 60 segundos ou é inválida.",
 
         # Errors
         "busy_server": "Servidor ocupado. Tente novamente em um minuto.",
@@ -242,8 +248,8 @@ UI_TEXTS = {
 
         # UI Sections
         "roleplay_header": "Roleplay de cliente ao vivo",
-        "roleplay_subtitle": "Simule uma conversa real de vendas enterprise com um executivo com pouco tempo.",
-        "roleplay_tip": "Simule uma cold call com um prospect cético. Você deve conectar seu pitch à empresa e apresentar pelo menos 3 produtos de GCP.",
+        "roleplay_subtitle": "Simule uma conversa real de vendas enterprise with a target role-constrained executive.",
+        "roleplay_tip": "Simule uma cold call com um prospect cético. Você deve conectar seu pitch à empresa e presentar pelo menos 3 produtos de GCP.",
 
         "scenario_preview": "Prévia do cenário",
         "scenario_subtitle": "Prévia do contexto da simulação.",
@@ -266,6 +272,9 @@ UI_TEXTS = {
         "knowledge_badge_desc": "Conectado a Plays e Battle Cards oficiais",
         "no_docs_loaded": "Nenhum documento interno FY26 foi carregado do GCS.",
         "session_caption": "Simulação ao vivo com Alex",
-        "simulator_info": "Este simulador recria conversas de vendas enterprise e oferece orientação em tempo real."
+        "simulator_info": "Este simulador recria conversas de vendas enterprise e oferece orientação em tempo real.",
+        
+        "hero_subtitle": "Um framework de treinamento profissional projetado para aperfeiçoar discovery B2B de alto nível por meio de simulação realista do comportamento dos compradores. O sucesso neste ambiente desafiador é alcançado apenas ao apresentar estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócio específico da empresa—integrando o Conhecimento de Vendas oficial do Google FY26 Campaign Plays.",
+        "hero_badges": ["Multilíngue", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"]
     }
 }

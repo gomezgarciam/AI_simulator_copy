@@ -1,9 +1,9 @@
 import base64
-import base64
 from pathlib import Path
 from typing import Optional
 
 import streamlit as st
+from src.ui.texts import UI_TEXTS
 
 def get_image_base64(path: str) -> Optional[str]:
     try:
@@ -18,6 +18,10 @@ def get_image_base64(path: str) -> Optional[str]:
 def render_header(info_text: str = ""):
     # Look for the project image in assets
     img_base64 = get_image_base64("assets/project_hero.png")
+
+    # Current language from session state
+    lang_choice = st.session_state.get("language_selector", "English")
+    T = UI_TEXTS[lang_choice]
 
     # Container for the Hero Field
     with st.container(border=True):
@@ -35,7 +39,7 @@ def render_header(info_text: str = ""):
             st.markdown(
                 f"""
                 <div class="hero-subtitle">
-                    A premium roleplay environment for enterprise discovery, objection handling, and positioning — powered by AI buyer simulation and official FY26 sales knowledge.
+                    {T["hero_subtitle"]}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -53,14 +57,11 @@ def render_header(info_text: str = ""):
                 )
 
         # Badges below (full width of the field)
+        badges_html = "".join([f'<div class="hero-badge">{badge}</div>' for badge in T["hero_badges"]])
         st.markdown(
-            """
+            f"""
             <div class="hero-badges">
-                <div class="hero-badge">Multilingual</div>
-                <div class="hero-badge">Voice Enabled</div>
-                <div class="hero-badge">FY26 Plays</div>
-                <div class="hero-badge">Battlecards</div>
-                <div class="hero-badge">Live Coaching</div>
+                {badges_html}
             </div>
             """,
             unsafe_allow_html=True
