@@ -1,1 +1,61 @@
-bash: 3: command not found
+INFO:     Started server process [7138]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:47066 - "WebSocket /ws/live-transcribe" [accepted]
+INFO: Conexión Live Mode establecida.
+INFO:     connection open
+INFO: Configurando STT para: en-US
+INFO: STT FINAL: How are you?
+INFO: Procesando con Alex: How are you?
+INFO: AFC is enabled with max remote calls: 10.
+INFO: HTTP Request: POST https://us-central1-aiplatform.googleapis.com/v1beta1/projects/b2b-agent-485013/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+INFO: Alex respondió: I'm fine. Let's get straight to it; my time is limited.
+INFO: Live Mode desconectado.
+INFO: Conexión cerrada y recursos liberados.
+INFO:     connection closed
+INFO: Hilo STT finalizado.
+INFO:     127.0.0.1:58930 - "WebSocket /ws/live-transcribe" [accepted]
+INFO: Conexión Live Mode establecida.
+INFO:     connection open
+INFO: Configurando STT para: en-US
+INFO: STT FINAL: I don't know what. It's, how are you?
+INFO: Procesando con Alex: I don't know what. It's, how are you?
+INFO: AFC is enabled with max remote calls: 10.
+INFO: HTTP Request: POST https://us-central1-aiplatform.googleapis.com/v1beta1/projects/b2b-agent-485013/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+INFO: Alex respondió: I'm well, thank you. What can I do for you? I have a few minutes.
+INFO: Live Mode desconectado.
+INFO: Conexión cerrada y recursos liberados.
+INFO:     connection closed
+INFO: Hilo STT finalizado.
+INFO:     127.0.0.1:59890 - "WebSocket /ws/live-transcribe" [accepted]
+INFO: Conexión Live Mode establecida.
+INFO:     connection open
+INFO: Configurando STT para: en-US
+INFO: STT FINAL: Hello. Alex. How are you? How is everything going in your life?
+INFO: Procesando con Alex: Hello. Alex. How are you? How is everything going in your life?
+INFO: AFC is enabled with max remote calls: 10.
+INFO: HTTP Request: POST https://us-central1-aiplatform.googleapis.com/v1beta1/projects/b2b-agent-485013/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+INFO: Alex respondió: I'm fine, thank you. Let's get straight to it. What did you want to discuss?
+INFO: STT FINAL:  Um, I want to discuss about your company, I don't know. Uh what role do you have? And where are you working?
+INFO: Procesando con Alex:  Um, I want to discuss about your company, I don't know. Uh what role do you have? And where are you working?
+INFO: AFC is enabled with max remote calls: 10.
+INFO: HTTP Request: POST https://us-central1-aiplatform.googleapis.com/v1beta1/projects/b2b-agent-485013/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+INFO: Alex respondió: I am Alex, CEO of Lulo Bank. What is this regarding?
+INFO: Live Mode desconectado.
+INFO: Conexión cerrada y recursos liberados.
+INFO:     connection closed
+INFO: Hilo STT finalizado.
+INFO:     127.0.0.1:58892 - "WebSocket /ws/live-transcribe" [accepted]
+INFO: Conexión Live Mode establecida.
+INFO:     connection open
+INFO: Configurando STT para: pt-BR
+INFO: STT FINAL: olhar é você, mas você Maria você
+INFO: Procesando con Alex: olhar é você, mas você Maria você
+INFO: AFC is enabled with max remote calls: 10.
+INFO: HTTP Request: POST https://us-central1-aiplatform.googleapis.com/v1beta1/projects/b2b-agent-485013/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+INFO: Alex respondió: Alex. Sou o CTO aqui. Em que posso ajudar?
+INFO: Live Mode desconectado.
+INFO: Conexión cerrada y recursos liberados.
+INFO:     connection closed
+INFO: Hilo STT finalizado.

@@ -112,36 +112,17 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # =========================================================
 # 4. SETUP SCREEN
 # =========================================================
-if mode == "Live Mode (Sprint 1 Test)":
-    render_header(info_text="Testing live streaming transcription.")
-    st.title("Live Mode (Sprint 2 Interaction)")
-    st.info("Start recording to interact with Alex in real-time.")
-    
-    # Preparamos metadatos reales
-    metadata = {
-        "target_company": st.session_state.get("target_company", "Google"),
-        "role": st.session_state.get("role", "CTO"),
-        "language": st.session_state.get("language", "English")
-    }
-    
-    # Render our custom component with metadata
-    transcript = live_mic_recorder(metadata=metadata)
-    
-    if transcript:
-        st.success(f"Final session captured.")
-    
-    st.stop()
-
 if "target_company" not in st.session_state:
-    T_EN = UI_TEXTS["English"]
-    
-    # We first render the header which will now contain the selector
+    # We use the language selector from the header directly
     render_header(
-        info_text=T_EN.get(
+        info_text=UI_TEXTS["English"].get(
             "simulator_info",
             "This simulator recreates enterprise sales conversations and provides real-time guidance."
         )
     )
+    
+    lang_choice = st.session_state.get("language_selector", "English")
+    T = UI_TEXTS[lang_choice]
 
     lang_choice = st.session_state.get("language_selector", "English")
     T = UI_TEXTS[lang_choice]
@@ -303,7 +284,30 @@ if "target_company" not in st.session_state:
 
 
 # =========================================================
-# 5. ACTIVE SESSION TEXTS
+# 5. LIVE MODE OVERRIDE (Sprint 2)
+# =========================================================
+if mode == "Live Mode (Sprint 1 Test)":
+    T = UI_TEXTS[st.session_state.language]
+    render_header(info_text=T.get("simulator_info", ""))
+    
+    st.title(f"Live Mode: {st.session_state.target_company}")
+    
+    # Preparamos metadatos reales de la sesión activa
+    metadata = {
+        "target_company": st.session_state.target_company,
+        "role": st.session_state.role,
+        "language": st.session_state.language
+    }
+    
+    st.info(f"Interacting with Alex as **{metadata['role']}** in **{metadata['language']}**.")
+    
+    # Render our custom component with metadata
+    live_mic_recorder(metadata=metadata)
+    
+    st.stop()
+
+# =========================================================
+# 6. ACTIVE SESSION TEXTS (Classic MVP)
 # =========================================================
 T = UI_TEXTS[st.session_state.language]
 

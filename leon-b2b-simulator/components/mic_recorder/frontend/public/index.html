@@ -37,14 +37,16 @@
       .user {
         align-self: flex-end;
         background: #007bff;
-        color: white;
+        color: white !important;
         border-bottom-right-radius: 2px;
+        margin-left: 20%;
       }
       .alex {
         align-self: flex-start;
-        background: #333;
-        color: white;
+        background: #e9e9eb;
+        color: black !important;
         border-bottom-left-radius: 2px;
+        margin-right: 20%;
       }
       .interim {
         opacity: 0.6;
@@ -99,17 +101,49 @@
       let audioContext, processor, input, stream, socket, isRecording = false;
       let currentInterimBubble = null;
       
-      // Metadatos que vendrán de Streamlit (inyectados vía render)
+      const GREETINGS = {
+        "English": "Hello, I'm Alex. I'm ready to listen.",
+        "Spanish": "Hola, soy Alex. Estoy listo para escucharte.",
+        "Portuguese": "Olá, eu sou o Alex. Estou pronto para ouvir."
+      };
+
+      const BUTTON_TEXTS = {
+        "English": { start: "Start Live Session", stop: "Stop Session", connecting: "Connecting...", live: "Live", disconnected: "Disconnected" },
+        "Spanish": { start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", connecting: "Conectando...", live: "En Vivo", disconnected: "Desconectado" },
+        "Portuguese": { start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", connecting: "Conectando...", live: "Ao Vivo", disconnected: "Desconectado" }
+      };
+
       let sessionMetadata = {
         target_company: "Google",
         role: "CTO",
-        language: "Spanish"
+        language: "English"
       };
+
+      function updateUI() {
+        const lang = sessionMetadata.language || "English";
+        console.log("Updating UI for language:", lang);
+        const texts = BUTTON_TEXTS[lang];
+        if (!texts) return;
+
+        if (!isRecording) {
+            recordBtn.innerText = texts.start;
+            statusText.innerText = texts.disconnected;
+        }
+
+        // SOLO actualizamos el saludo inicial si no hay mensajes o si solo está el saludo por defecto
+        if (chatHistory.children.length <= 1) {
+            chatHistory.innerHTML = `<div class="bubble alex">${GREETINGS[lang]}</div>`;
+        }
+      }
 
       // Escuchar argumentos de Streamlit
       window.addEventListener("message", (event) => {
         if (event.data.type === "streamlit:render") {
-          sessionMetadata = event.data.args.metadata || sessionMetadata;
+          console.log("Received Streamlit Render Event. Args:", event.data.args);
+          if (event.data.args && event.data.args.metadata) {
+            sessionMetadata = event.data.args.metadata;
+            updateUI();
+          }
         }
       });
 
@@ -149,14 +183,17 @@
       }
 
       async function startRecording() {
+        const lang = sessionMetadata.language || "English";
+        const texts = BUTTON_TEXTS[lang];
+
         // Limpiar burbujas anteriores al iniciar
-        chatHistory.innerHTML = '<div class="bubble alex">Hola, soy Alex. Estoy listo para escucharte.</div>';
+        chatHistory.innerHTML = `<div class="bubble alex">${GREETINGS[lang]}</div>`;
         currentInterimBubble = null;
         
         isRecording = true;
-        recordBtn.innerText = "Detener Sesión";
+        recordBtn.innerText = texts.stop;
         recordBtn.classList.add("recording");
-        statusText.innerText = "Conectando...";
+        statusText.innerText = texts.connecting;
 
         try {
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -170,8 +207,10 @@
           socket = new WebSocket(wsUrl);
 
           socket.onopen = async () => {
+            const lang = sessionMetadata.language || "English";
+            const texts = BUTTON_TEXTS[lang];
             statusDot.classList.add("active");
-            statusText.innerText = "En Vivo";
+            statusText.innerText = texts.live;
             socket.send(JSON.stringify({...sessionMetadata, sample_rate: 16000}));
 
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -196,9 +235,14 @@
 
           socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log("WebSocket Message Received:", data);
+
             if (data.type === "user_transcript") {
-              addBubble(data.transcript, "user", !data.is_final);
+              if (data.transcript && data.transcript.trim().length > 0) {
+                addBubble(data.transcript, "user", !data.is_final);
+              }
             } else if (data.type === "alex_response") {
+              console.log("Displaying Alex Response:", data.transcript);
               addBubble(data.transcript, "alex");
               if (data.audio) playBase64Audio(data.audio);
             }
@@ -214,11 +258,14 @@
       }
 
       function stopRecording() {
+        const lang = sessionMetadata.language || "English";
+        const texts = BUTTON_TEXTS[lang];
+
         isRecording = false;
-        recordBtn.innerText = "Iniciar Sesión en Vivo";
+        recordBtn.innerText = texts.start;
         recordBtn.classList.remove("recording");
         statusDot.classList.remove("active");
-        statusText.innerText = "Desconectado";
+        statusText.innerText = texts.disconnected;
         if (processor) processor.disconnect();
         if (audioContext) audioContext.close();
         if (stream) stream.getTracks().forEach(t => t.stop());
