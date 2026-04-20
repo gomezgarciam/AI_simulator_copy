@@ -83,6 +83,30 @@ GLOBAL_STYLES = """
             margin: 0.8rem 0 !important;
         }
 
+        /* Hero Project Image Styling (Side Column) */
+        .hero-img-box-side {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+
+        .hero-project-image-side {
+            max-width: 100%;
+            height: auto;
+            max-height: 140px;
+            object-fit: contain;
+            /* Transparent background, only shadow for depth */
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08));
+            transition: transform 0.3s ease;
+        }
+
+        .hero-project-image-side:hover {
+            transform: translateY(-2px);
+        }
+
+
         .hero-title {
             font-family: 'Google Sans', 'Roboto', sans-serif;
             font-size: clamp(2.2rem, 5vw, 3.8rem);
