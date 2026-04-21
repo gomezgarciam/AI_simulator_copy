@@ -15,24 +15,30 @@ function onRender(event) {
 }
 
 Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
-Streamlit.setComponentReady();
+
+// Wait a tiny bit to ensure Streamlit is ready
+setTimeout(() => {
+  Streamlit.setComponentReady();
+}, 100);
 
 async function startRecording() {
-  isRecording = true;
+...
+
   recordBtn.innerText = "Stop Recording";
   recordBtn.classList.add("recording");
   statusDiv.innerText = "Connecting...";
 
   try {
     // 1. Determine WebSocket URL
-    let wsUrl = "ws://localhost:8000/ws/live-transcribe";
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    let wsUrl = `${protocol}//${window.location.host}/ws/live-transcribe`;
     
-    if (window.location.hostname.includes("devshell.dev") || window.location.hostname.includes("appspot.com")) {
-      const parts = window.location.hostname.split("-dot-");
-      if (parts.length > 1) {
-        const shellId = parts.slice(1).join("-dot-");
-        wsUrl = `wss://8000-dot-${shellId}/ws/live-transcribe`;
-      }
+    // Cloud Shell specific handling (Web Preview)
+    if (window.location.hostname.includes(".cloudshell.dev")) {
+      const currentHost = window.location.hostname;
+      // Replace the Streamlit port (8501) with the Backend port (8000)
+      const newHost = currentHost.replace(/^8501-/, "8000-");
+      wsUrl = `wss://${newHost}/ws/live-transcribe`;
     }
 
     console.log("Connecting to WebSocket:", wsUrl);
