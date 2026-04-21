@@ -66,6 +66,25 @@ def render_header(info_text: str = ""):
             # Language Selector on top
             st.selectbox("Select Language", ["English", "Spanish", "Portuguese"], label_visibility="collapsed", key="language_selector")
             
+            # --- PERSISTENT MODE SELECTOR ---
+            with st.popover(f"{T.get('mode_btn', 'Mode')} ⚙️", use_container_width=True):
+                st.markdown(f"**{T.get('mode_btn', 'Mode')} Select**")
+                modes = ("Classic MVP", "Live Mode (Sprint 1 Test)")
+                current_mode = st.session_state.get("app_mode", "Classic MVP")
+                
+                # Check if we need to initialize or change app_mode
+                new_mode = st.radio(
+                    "Simulation Mode",
+                    modes,
+                    index=0 if current_mode == "Classic MVP" else 1,
+                    label_visibility="collapsed",
+                    key="app_mode_radio_internal"
+                )
+                
+                if new_mode != current_mode:
+                    st.session_state.app_mode = new_mode
+                    st.rerun()
+
             # Image below selector with professional spacing
             if img_base64:
                 st.markdown(

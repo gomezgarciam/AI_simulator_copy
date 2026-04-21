@@ -66,8 +66,8 @@ st.set_page_config(
 
 initialize_session_state()
 
-# --- NEW: SPRINT 1 MODE SELECTOR ---
-mode = st.sidebar.radio("Select Mode", ("Classic MVP", "Live Mode (Sprint 1 Test)"))
+# --- MODE ---
+mode = st.session_state.get("app_mode", "Classic MVP")
 
 # =========================================================
 # 2. CLIENTS / RESOURCES
@@ -112,7 +112,7 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # =========================================================
 # 4. SETUP SCREEN
 # =========================================================
-if "target_company" not in st.session_state:
+if st.session_state.target_company is None:
     # We use the language selector from the header directly
     render_header(
         info_text=UI_TEXTS["English"].get(
@@ -233,6 +233,19 @@ if "target_company" not in st.session_state:
     with center_col:
         section_title(T["scenario_preview"], T["scenario_subtitle"])
 
+        # --- MODE EXPLANATIONS ---
+        st.markdown(
+            f"""
+            <div style="background: rgba(26, 115, 232, 0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(26, 115, 232, 0.2); margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; color: var(--google-blue); margin-bottom: 0.5rem; font-size: 0.9rem;">{T['mode_classic_title']}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{T['mode_classic_desc']}</div>
+                <div style="margin-top: 1rem; font-weight: 600; color: #15803d; margin-bottom: 0.5rem; font-size: 0.9rem;">{T['mode_live_title']}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{T['mode_live_desc']}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         preview_company = company if company else "-"
         preview_role = role if role else "-"
 
@@ -241,17 +254,6 @@ if "target_company" not in st.session_state:
             preview_role,
             lang_choice,
             T,
-        )
-
-        st.markdown(
-            f"""
-            <div class="scenario-box">
-                <strong>{T['company']}:</strong> {preview_company}<br>
-                <strong>{T['role']}:</strong> {preview_role}<br>
-                <strong>{T['language']}:</strong> {lang_choice}
-            </div>
-            """,
-            unsafe_allow_html=True,
         )
 
     with right_col:
@@ -299,7 +301,12 @@ if mode == "Live Mode (Sprint 1 Test)":
         "language": st.session_state.language
     }
     
-    st.info(f"Interacting with Alex as **{metadata['role']}** in **{metadata['language']}**.")
+    render_metric_strip(
+        metadata["target_company"],
+        metadata["role"],
+        metadata["language"],
+        T=T
+    )
     
     # Render our custom component with metadata
     live_mic_recorder(metadata=metadata)
@@ -324,11 +331,6 @@ render_metric_strip(
     st.session_state.role,
     st.session_state.language,
     T=T
-)
-
-st.markdown(
-    f"<div class='session-caption'>{T.get('session_caption', 'Live simulation with Alex')} | {st.session_state.role} at {st.session_state.target_company}</div>",
-    unsafe_allow_html=True
 )
 
 top_actions_left, top_actions_right = st.columns([6, 1.2])

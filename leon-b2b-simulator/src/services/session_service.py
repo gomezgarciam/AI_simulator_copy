@@ -11,6 +11,11 @@ DEFAULT_SESSION_VALUES = {
     "chat_session": None,
     "show_assistant": True,
     "company_url": "",
+    "show_mode_selector": False,
+    "app_mode": "Classic MVP",
+    "language": "English",
+    "target_company": None,
+    "role": None,
 }
 
 

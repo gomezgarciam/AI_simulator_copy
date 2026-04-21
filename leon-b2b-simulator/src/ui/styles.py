@@ -250,11 +250,24 @@ GLOBAL_STYLES = """
         }
 
         /* Metric Pllls */
+        .metric-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            width: 100%;
+        }
+
         .metric-pill {
             background-color: var(--surface-variant);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.2rem;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 140px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
 
         .metric-pill span {

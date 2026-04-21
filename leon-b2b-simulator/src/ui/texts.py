@@ -89,7 +89,13 @@ UI_TEXTS = {
         "simulator_info": "This simulator recreates enterprise sales conversations and provides real-time guidance.",
         
         "hero_subtitle": "A professional training framework engineered to sharpen high-stakes B2B discovery through realistic buyer behavioral simulation. Success in this challenging environment is achieved only by strategically presenting at least three Google services, each tailored to the company's specific business context—integrating official Google FY26 Campaign Plays Sales Knowledge.",
-        "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"]
+        "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"],
+        
+        "mode_btn": "Mode",
+        "mode_classic_title": "Classic MVP",
+        "mode_classic_desc": "Assisted simulation with a side-by-side chat assistant for live coaching.",
+        "mode_live_title": "Live Mode",
+        "mode_live_desc": "A distraction-free, voice-only interface focused purely on the live conversation with Alex.",
     },
 
     "Spanish": {
@@ -182,7 +188,13 @@ UI_TEXTS = {
         "simulator_info": "Este simulador recrea conversaciones de ventas enterprise y ofrece guía en tiempo real.",
         
         "hero_subtitle": "Un marco de entrenamiento profesional diseñado para perfeccionar discovery B2B de alto nivel mediante simulación realista del comportamiento de compradores. El éxito en este entorno desafiante se logra solo al presentar estratégicamente al menos tres servicios de Google, cada uno adaptado al contexto de negocio específico de la empresa—integrando el Conocimiento de Ventas oficial de Google FY26 Campaign Plays.",
-        "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"]
+        "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"],
+
+        "mode_btn": "Modo",
+        "mode_classic_title": "Classic MVP",
+        "mode_classic_desc": "Simulación asistida con un chat de asesoramiento en tiempo real.",
+        "mode_live_title": "Modo Live",
+        "mode_live_desc": "Interfaz sin distracciones centrada puramente en la conversación en vivo con Alex.",
     },
 
     "Portuguese": {
@@ -275,6 +287,12 @@ UI_TEXTS = {
         "simulator_info": "Este simulador recria conversas de vendas enterprise e oferece orientação em tempo real.",
         
         "hero_subtitle": "Um framework de treinamento profissional projetado para aperfeiçoar discovery B2B de alto nível por meio de simulação realista do comportamento dos compradores. O sucesso neste ambiente desafiador é alcançado apenas ao apresentar estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócio específico da empresa—integrando o Conhecimento de Vendas oficial do Google FY26 Campaign Plays.",
-        "hero_badges": ["Multilíngue", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"]
+        "hero_badges": ["Multilíngue", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
+
+        "mode_btn": "Modo",
+        "mode_classic_title": "Classic MVP",
+        "mode_classic_desc": "Simulação assistida com chat de orientação ao lado para coaching ao vivo.",
+        "mode_live_title": "Modo Live",
+        "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo com Alex.",
     }
 }
