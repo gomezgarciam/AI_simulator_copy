@@ -198,9 +198,10 @@
         try {
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
           const hostname = window.location.host;
-          let wsUrl = `${protocol}//${hostname.replace("8080", "8000")}/ws/live-transcribe`;
+          let wsUrl = `${protocol}//${hostname}/ws/live-transcribe`;
           
           if (hostname.includes("cloudshell.dev")) {
+             // Cloud Shell needs separate port subdomain
              wsUrl = `wss://${hostname.replace("8080-cs-", "8000-cs-")}/ws/live-transcribe`;
           }
 
