@@ -9,8 +9,11 @@ let input;
 let stream;
 let socket;
 let isRecording = false;
+let metadata = {}; // Store metadata from Streamlit
 
 function onRender(event) {
+  // Capture metadata passed from Streamlit
+  metadata = event.detail.args.metadata || {};
   Streamlit.setFrameHeight();
 }
 
@@ -22,35 +25,30 @@ setTimeout(() => {
 }, 100);
 
 async function startRecording() {
-...
+  isRecording = true;
 
   recordBtn.innerText = "Stop Recording";
   recordBtn.classList.add("recording");
   statusDiv.innerText = "Connecting...";
 
   try {
-    // 1. Determine WebSocket URL
+    // 1. Determine WebSocket URL (Universal for Nginx proxy)
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    let wsUrl = `${protocol}//${window.location.host}/ws/live-transcribe`;
-    
-    // Cloud Shell specific handling (Web Preview)
-    if (window.location.hostname.includes(".cloudshell.dev")) {
-      const currentHost = window.location.hostname;
-      // Replace the Streamlit port (8501) with the Backend port (8000)
-      const newHost = currentHost.replace(/^8501-/, "8000-");
-      wsUrl = `wss://${newHost}/ws/live-transcribe`;
-    }
+    const wsUrl = `${protocol}//${window.location.host}/ws/live-transcribe`;
 
-    console.log("Connecting to WebSocket:", wsUrl);
+    console.log("Connecting to WebSocket via Proxy:", wsUrl);
     socket = new WebSocket(wsUrl);
 
     socket.onopen = async () => {
       console.log("WebSocket connected.");
       statusDiv.innerText = "Listening...";
-      
+
+      // Send dynamic metadata to backend
       socket.send(JSON.stringify({
-        language: "English",
-        sample_rate: 16000
+        language: metadata.language || "English",
+        sample_rate: 16000,
+        target_company: metadata.target_company,
+        role: metadata.role
       }));
 
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });

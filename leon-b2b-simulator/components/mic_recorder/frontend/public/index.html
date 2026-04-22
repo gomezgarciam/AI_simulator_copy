@@ -3,91 +3,44 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Live Mode - Sprint 2</title>
+    <title>AI Sales Simulator - Live Mode</title>
     <style>
-      body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background: transparent;
-      }
-      .container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        padding: 10px;
-        max-width: 100%;
-      }
-      #chat-history {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        max-height: 400px;
-        overflow-y: auto;
-        padding: 10px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.05);
-      }
-      .bubble {
-        padding: 10px 15px;
-        border-radius: 15px;
-        max-width: 80%;
-        font-size: 14px;
-        line-height: 1.4;
-      }
-      .user {
-        align-self: flex-end;
-        background: #007bff;
-        color: white !important;
-        border-bottom-right-radius: 2px;
-        margin-left: 20%;
-      }
-      .alex {
-        align-self: flex-start;
-        background: #e9e9eb;
-        color: black !important;
-        border-bottom-left-radius: 2px;
-        margin-right: 20%;
-      }
-      .interim {
-        opacity: 0.6;
-        font-style: italic;
-      }
-      .controls {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      button {
-        background-color: #ff4b4b;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.2s;
-      }
-      button:hover { background-color: #ff3333; transform: scale(1.02); }
-      button.recording { background-color: #333; animation: pulse 1.5s infinite; }
-      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-      .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
-      .status-dot.active { background: #28a745; box-shadow: 0 0 5px #28a745; }
+      body { margin: 0; font-family: 'Inter', 'Google Sans', sans-serif; background: transparent; color: #3c4043; }
+      .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; max-width: 100%; }
+      #chat-history { display: flex; flex-direction: column; gap: 12px; max-height: 450px; overflow-y: auto; padding: 15px; border-radius: 12px; background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05); }
+      .bubble { padding: 10px 16px; border-radius: 18px; max-width: 85%; font-size: 14px; line-height: 1.5; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+      .user { align-self: flex-end; background: #1a73e8; color: white !important; border-bottom-right-radius: 4px; }
+      .alex { align-self: flex-start; background: white; color: #3c4043 !important; border-bottom-left-radius: 4px; border: 1px solid #dadce0; }
+      .interim { opacity: 0.7; font-style: italic; }
+      .controls { display: flex; align-items: center; gap: 12px; }
+      button { background-color: #d93025; color: white; border: none; padding: 10px 20px; border-radius: 24px; cursor: pointer; font-weight: 500; font-size: 14px; transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
+      button:hover { background-color: #b21f16; }
+      button.recording { background-color: #202124; animation: pulse 2s infinite; }
+      @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
+      .status-container { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5f6368; }
+      .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #dadce0; }
+      .status-dot.active { background: #1e8e3e; box-shadow: 0 0 4px #1e8e3e; }
+      #debug-log { font-size: 10px; color: #9aa0a6; font-family: monospace; margin-top: 8px; border-top: 1px solid #f1f3f4; padding-top: 8px; }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="controls">
-        <button id="record-btn">Iniciar Sesión en Vivo</button>
-        <div id="status-dot" class="status-dot"></div>
-        <span id="status-text" style="font-size: 12px; color: #888;">Desconectado</span>
+        <button id="record-btn">Start Live Session</button>
+        <div class="status-container">
+          <div id="status-dot" class="status-dot"></div>
+          <span id="status-text">Disconnected</span>
+        </div>
       </div>
+      
       <div id="chat-history">
-        <div class="bubble alex">Hola, soy Alex. Estoy listo para escucharte.</div>
+        <div class="bubble alex">Hello, I'm Alex. I'm ready to listen.</div>
       </div>
+
+      <div id="debug-log">Ready.</div>
     </div>
 
     <script>
-      // Minimal Streamlit Bridge
       const Streamlit = {
         setComponentReady: () => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1}, "*"),
         setFrameHeight: () => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setFrameHeight", height: document.body.scrollHeight}, "*"),
@@ -97,130 +50,113 @@
       const chatHistory = document.getElementById("chat-history");
       const statusDot = document.getElementById("status-dot");
       const statusText = document.getElementById("status-text");
+      const debugLog = document.getElementById("debug-log");
 
-      let audioContext, processor, input, stream, socket, isRecording = false;
-      let currentInterimBubble = null;
-      
-      const GREETINGS = {
-        "English": "Hello, I'm Alex. I'm ready to listen.",
-        "Spanish": "Hola, soy Alex. Estoy listo para escucharte.",
-        "Portuguese": "Olá, eu sou o Alex. Estou pronto para ouvir."
-      };
+      let audioContext = null, processor = null, input = null, stream = null, socket = null;
+      let isRecording = false, isCleaningUp = false;
+      let chunksSent = 0;
+      let sessionMetadata = { language: "English", target_company: "Google", role: "CTO" };
 
       const BUTTON_TEXTS = {
-        "English": { start: "Start Live Session", stop: "Stop Session", connecting: "Connecting...", live: "Live", disconnected: "Disconnected" },
-        "Spanish": { start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", connecting: "Conectando...", live: "En Vivo", disconnected: "Desconectado" },
-        "Portuguese": { start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", connecting: "Conectando...", live: "Ao Vivo", disconnected: "Desconectado" }
+        "English": { start: "Start Live Session", stop: "Stop Session", live: "Live", disc: "Disconnected" },
+        "Spanish": { start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", live: "En Vivo", disc: "Desconectado" },
+        "Portuguese": { start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", live: "Ao Vivo", disc: "Desconectado" }
       };
 
-      let sessionMetadata = {
-        target_company: "Google",
-        role: "CTO",
-        language: "English"
-      };
-
-      function updateUI() {
-        const lang = sessionMetadata.language || "English";
-        console.log("Updating UI for language:", lang);
-        const texts = BUTTON_TEXTS[lang];
-        if (!texts) return;
-
-        if (!isRecording) {
-            recordBtn.innerText = texts.start;
-            statusText.innerText = texts.disconnected;
-        }
-
-        // SOLO actualizamos el saludo inicial si no hay mensajes o si solo está el saludo por defecto
-        if (chatHistory.children.length <= 1) {
-            chatHistory.innerHTML = `<div class="bubble alex">${GREETINGS[lang]}</div>`;
-        }
+      function log(msg) {
+        console.log(msg);
+        debugLog.innerText = msg;
       }
 
-      // Escuchar argumentos de Streamlit
-      window.addEventListener("message", (event) => {
-        if (event.data.type === "streamlit:render") {
-          console.log("Received Streamlit Render Event. Args:", event.data.args);
-          if (event.data.args && event.data.args.metadata) {
-            sessionMetadata = event.data.args.metadata;
-            updateUI();
-          }
+      window.addEventListener("message", (e) => {
+        if (e.data.type === "streamlit:render" && e.data.args.metadata) {
+          sessionMetadata = e.data.args.metadata;
+          if (!isRecording) updateUI();
         }
       });
 
-      Streamlit.setComponentReady();
-      setInterval(Streamlit.setFrameHeight, 500);
+      function updateUI() {
+        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        if (!isRecording) {
+          recordBtn.innerText = t.start;
+          statusText.innerText = t.disc;
+        }
+      }
 
       function addBubble(text, side, isInterim = false) {
-        if (isInterim && currentInterimBubble) {
-          currentInterimBubble.innerText = text;
-          return;
-        }
-        
         const b = document.createElement("div");
         b.className = `bubble ${side} ${isInterim ? 'interim' : ''}`;
         b.innerText = text;
         chatHistory.appendChild(b);
         chatHistory.scrollTop = chatHistory.scrollHeight;
-        
-        if (isInterim) currentInterimBubble = b;
-        else currentInterimBubble = null;
-        
         return b;
       }
 
-      async function playBase64Audio(base64) {
-        const binaryString = window.atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
-        
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const audioBuffer = await ctx.decodeAudioData(bytes.buffer);
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(ctx.destination);
-        source.start(0);
+      async function stopAudio() {
+        if (isCleaningUp) return;
+        isCleaningUp = true;
+        log("Stopping audio capture...");
+        if (processor) { processor.disconnect(); processor = null; }
+        if (input) { input.disconnect(); input = null; }
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        if (audioContext && audioContext.state !== "closed") {
+          try { await audioContext.close(); } catch(e) {}
+          audioContext = null;
+        }
+        isCleaningUp = false;
+      }
+
+      async function cleanup() {
+        log("Cleaning up session...");
+        isRecording = false;
+        await stopAudio();
+        if (socket) {
+          if (socket.readyState === WebSocket.OPEN) socket.close();
+          socket = null;
+        }
+        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        recordBtn.innerText = t.start;
+        recordBtn.classList.remove("recording");
+        statusDot.classList.remove("active");
+        statusText.innerText = t.disc;
       }
 
       async function startRecording() {
-        const lang = sessionMetadata.language || "English";
-        const texts = BUTTON_TEXTS[lang];
-
-        // Limpiar burbujas anteriores al iniciar
-        chatHistory.innerHTML = `<div class="bubble alex">${GREETINGS[lang]}</div>`;
-        currentInterimBubble = null;
-        
+        if (isRecording) return;
         isRecording = true;
-        recordBtn.innerText = texts.stop;
+        chunksSent = 0;
+        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        recordBtn.innerText = t.stop;
         recordBtn.classList.add("recording");
-        statusText.innerText = texts.connecting;
+        statusText.innerText = "Connecting...";
 
         try {
+          // 1. WebSocket
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-          const hostname = window.location.host;
-          let wsUrl = `${protocol}//${hostname}/ws/live-transcribe`;
-          
-          if (hostname.includes("cloudshell.dev")) {
-             // Cloud Shell needs separate port subdomain
-             wsUrl = `wss://${hostname.replace("8080-cs-", "8000-cs-")}/ws/live-transcribe`;
-          }
-
-          socket = new WebSocket(wsUrl);
+          socket = new WebSocket(`${protocol}//${window.location.host}/ws/live-transcribe`);
 
           socket.onopen = async () => {
-            const lang = sessionMetadata.language || "English";
-            const texts = BUTTON_TEXTS[lang];
+            log("✅ WebSocket Connected");
             statusDot.classList.add("active");
-            statusText.innerText = texts.live;
-            socket.send(JSON.stringify({...sessionMetadata, sample_rate: 16000}));
+            statusText.innerText = t.live;
 
+            // 2. Audio Context FIRST to get real sample rate
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') await audioContext.resume();
+            
+            const realSampleRate = audioContext.sampleRate;
+            log(`🎧 Audio Initialized @ ${realSampleRate}Hz`);
+
+            // 3. Send Metadata with REAL sample rate
+            socket.send(JSON.stringify({...sessionMetadata, sample_rate: realSampleRate}));
+
+            // 4. Start Capture
             input = audioContext.createMediaStreamSource(stream);
             processor = audioContext.createScriptProcessor(4096, 1, 1);
             
             processor.onaudioprocess = (e) => {
-              if (!isRecording || socket.readyState !== WebSocket.OPEN) return;
+              if (!isRecording || !socket || socket.readyState !== WebSocket.OPEN) return;
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmData = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) {
@@ -228,52 +164,43 @@
                 pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
               }
               socket.send(pcmData.buffer);
+              chunksSent++;
+              if (chunksSent % 25 === 0) log(`Sent ${chunksSent} chunks`);
             };
 
             input.connect(processor);
             processor.connect(audioContext.destination);
           };
 
-          socket.onmessage = (event) => {
+          socket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
-            console.log("WebSocket Message Received:", data);
-
             if (data.type === "user_transcript") {
-              if (data.transcript && data.transcript.trim().length > 0) {
-                addBubble(data.transcript, "user", !data.is_final);
-              }
+              addBubble(data.transcript, "user", !data.is_final);
             } else if (data.type === "alex_response") {
-              console.log("Displaying Alex Response:", data.transcript);
               addBubble(data.transcript, "alex");
-              if (data.audio) playBase64Audio(data.audio);
+              if (data.audio) {
+                const bytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+                const audio = new Audio(URL.createObjectURL(new Blob([bytes], {type: "audio/mp3"})));
+                audio.play();
+              }
+            } else if (data.type === "error") {
+              log(`❌ Backend Error: ${data.message}`);
+              cleanup();
             }
           };
 
-          socket.onclose = stopRecording;
-          socket.onerror = stopRecording;
+          socket.onclose = () => { if (isRecording) cleanup(); };
+          socket.onerror = () => cleanup();
 
         } catch (err) {
-          console.error(err);
-          stopRecording();
+          log(`❌ Error: ${err.message}`);
+          cleanup();
         }
       }
 
-      function stopRecording() {
-        const lang = sessionMetadata.language || "English";
-        const texts = BUTTON_TEXTS[lang];
-
-        isRecording = false;
-        recordBtn.innerText = texts.start;
-        recordBtn.classList.remove("recording");
-        statusDot.classList.remove("active");
-        statusText.innerText = texts.disconnected;
-        if (processor) processor.disconnect();
-        if (audioContext) audioContext.close();
-        if (stream) stream.getTracks().forEach(t => t.stop());
-        if (socket) socket.close();
-      }
-
-      recordBtn.onclick = () => isRecording ? stopRecording() : startRecording();
+      recordBtn.onclick = () => isRecording ? cleanup() : startRecording();
+      Streamlit.setComponentReady();
+      setInterval(Streamlit.setFrameHeight, 500);
     </script>
   </body>
 </html>

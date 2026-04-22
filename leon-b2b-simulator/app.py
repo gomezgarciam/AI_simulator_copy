@@ -84,25 +84,30 @@ def get_clients():
 
 @st.cache_resource
 def load_document_knowledge():
+    # Solo intentamos cargar si el bucket está configurado y no es el default de cloudshell
+    if not INTERNAL_DOCS_BUCKET or "your-bucket" in INTERNAL_DOCS_BUCKET:
+        return [], []
+    
     try:
-        docs = load_internal_documents_from_gcs(
-            INTERNAL_DOCS_BUCKET,
-            prefix=INTERNAL_DOCS_PREFIX,
-        )
-        chunk_index = build_chunk_index(docs)
-        return docs, chunk_index
+        # Añadimos un mensaje de estado que no bloquee
+        with st.spinner("Conectando con base de conocimientos FY26..."):
+            docs = load_internal_documents_from_gcs(
+                INTERNAL_DOCS_BUCKET,
+                prefix=INTERNAL_DOCS_PREFIX,
+            )
+            if not docs:
+                return [], []
+            chunk_index = build_chunk_index(docs)
+            return docs, chunk_index
     except Exception as e:
-        st.error(f"Error loading internal documents from GCS: {e}")
+        print(f"DEBUG: GCS Load failed (normal in dev): {e}")
         return [], []
 
-
+# Intentamos cargar, pero si falla o tarda, la app sigue
 try:
-    genai_client, speech_client, tts_client = get_clients()
-except Exception as e:
-    st.error(f"Credential/API error: {e}")
-    st.stop()
-
-internal_docs, internal_chunk_index = load_document_knowledge()
+    internal_docs, internal_chunk_index = load_document_knowledge()
+except:
+    internal_docs, internal_chunk_index = [], []
 
 
 # =========================================================
