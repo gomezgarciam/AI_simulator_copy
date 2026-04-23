@@ -131,9 +131,18 @@
         statusText.innerText = "Connecting...";
 
         try {
-          // 1. WebSocket
+          // 1. WebSocket (Auto-detect Cloud Shell vs Production)
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-          socket = new WebSocket(`${protocol}//${window.location.host}/ws/live-transcribe`);
+          let wsHost = window.location.host;
+          
+          // Si estamos en Cloud Shell Web Preview, el backend está en el puerto 8000
+          if (wsHost.includes("cloudshell.dev") && wsHost.includes("8080")) {
+            wsHost = wsHost.replace("8080", "8000");
+          }
+          
+          const wsUrl = `${protocol}//${wsHost}/ws/live-transcribe`;
+          console.log("Connecting to WebSocket:", wsUrl);
+          socket = new WebSocket(wsUrl);
 
           socket.onopen = async () => {
             log("✅ WebSocket Connected");
@@ -142,11 +151,13 @@
 
             // 2. Audio Context FIRST to get real sample rate
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // FORZAR 16000Hz para máxima compatibilidad con STT
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             if (audioContext.state === 'suspended') await audioContext.resume();
             
             const realSampleRate = audioContext.sampleRate;
-            log(`🎧 Audio Initialized @ ${realSampleRate}Hz`);
+            log(`🎧 Audio Initialized @ ${realSampleRate}Hz (Forced 16000)`);
 
             // 3. Send Metadata with REAL sample rate
             socket.send(JSON.stringify({...sessionMetadata, sample_rate: realSampleRate}));

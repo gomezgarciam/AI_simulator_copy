@@ -32,11 +32,18 @@ async function startRecording() {
   statusDiv.innerText = "Connecting...";
 
   try {
-    // 1. Determine WebSocket URL (Universal for Nginx proxy)
+    // 1. Determine WebSocket URL (Universal for Nginx proxy and Cloud Shell)
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/live-transcribe`;
+    let host = window.location.host;
 
-    console.log("Connecting to WebSocket via Proxy:", wsUrl);
+    // Detect if we are in Cloud Shell Web Preview and point to port 8000
+    if (host.includes("cloudshell.dev") && host.includes("8080")) {
+      host = host.replace("8080", "8000");
+    }
+
+    const wsUrl = `${protocol}//${host}/ws/live-transcribe`;
+
+    console.log("Connecting to WebSocket:", wsUrl);
     socket = new WebSocket(wsUrl);
 
     socket.onopen = async () => {

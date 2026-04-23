@@ -45,7 +45,10 @@ class SpeechStreamer:
         self.audio_queue = queue.Queue()
         self.closed = False
         self.stt_running = False
+        self.chunk_count = 0
 
+        logger.info(f"🎤 Configurando SpeechStreamer: Idioma={self.language_code}, SampleRate={self.sample_rate}")
+        
         self.client = speech.SpeechClient(
             client_options={"quota_project_id": GOOGLE_CLOUD_PROJECT}
         )
@@ -61,6 +64,9 @@ class SpeechStreamer:
                 chunk = self.audio_queue.get(timeout=1)
                 if chunk is None:
                     return
+                self.chunk_count += 1
+                if self.chunk_count % 50 == 0:
+                    logger.info(f"📥 Backend: Recibidos {self.chunk_count} fragmentos de audio.")
                 yield chunk
             except queue.Empty:
                 continue
@@ -75,7 +81,8 @@ class SpeechStreamer:
 
     async def process_and_respond(self, user_text):
         try:
-            logger.info(f"🤖 Procesando con Alex: {user_text}")
+            logger.info(f"🤖 [ALEX ENGINE] Iniciando procesamiento para: '{user_text}'")
+            logger.info(f"📊 [METADATA] Company: {self.metadata.get('target_company')}, Role: {self.metadata.get('role')}, Lang: {self.language}")
 
             self.chat_session = get_or_create_roleplay_session(
                 existing_chat_session=self.chat_session,
@@ -86,6 +93,8 @@ class SpeechStreamer:
                 language=self.language,
                 stop_phrase="FINISH_CALL"
             )
+            
+            logger.info(f"⏳ [ALEX ENGINE] Enviando mensaje a Gemini...")
 
             response_ai, _ = send_roleplay_message(
                 chat_session=self.chat_session,
@@ -95,19 +104,23 @@ class SpeechStreamer:
 
             if response_ai and response_ai.text and not self.closed:
                 ai_text = response_ai.text
-                logger.info(f"🎙️ Alex respondió: {ai_text}")
+                logger.info(f"🎙️ [ALEX ENGINE] Alex respondió: '{ai_text}'")
 
                 audio_content = synthesize_speech(
                     self.tts_client,
                     ai_text,
                     self.language
                 )
+                
+                logger.info(f"🔊 [ALEX ENGINE] Audio sintetizado ({len(audio_content)} bytes). Enviando al WebSocket...")
 
                 await self.safe_send({
                     "type": "alex_response",
                     "transcript": ai_text,
                     "audio": base64.b64encode(audio_content).decode("utf-8")
                 })
+            else:
+                logger.warning("⚠️ [ALEX ENGINE] Gemini no devolvió texto o el socket está cerrado.")
 
         except Exception as e:
             logger.error(f"Error en process_and_respond: {e}")
@@ -169,7 +182,9 @@ class SpeechStreamer:
                     self.loop
                 )
 
-                if is_final and len(transcript.strip()) > 1:
+                # TRIGGER: Procesamos si es final O si el transcript es lo suficientemente largo y parece estable
+                if (is_final and len(transcript.strip()) > 1) or (not is_final and len(transcript.strip()) > 50):
+                    logger.info("🚀 [ALEX ENGINE] Disparando respuesta por longitud o finalización.")
                     asyncio.run_coroutine_threadsafe(
                         self.process_and_respond(transcript),
                         self.loop
