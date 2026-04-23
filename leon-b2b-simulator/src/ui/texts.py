@@ -92,7 +92,7 @@ UI_TEXTS = {
         "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"],
         
         "mode_btn": "Mode",
-        "mode_classic_title": "Classic MVP",
+        "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Assisted simulation with a side-by-side chat assistant for live coaching.",
         "mode_live_title": "Live Mode",
         "mode_live_desc": "A distraction-free, voice-only interface focused purely on the live conversation with Alex.",
@@ -191,7 +191,7 @@ UI_TEXTS = {
         "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"],
 
         "mode_btn": "Modo",
-        "mode_classic_title": "Classic MVP",
+        "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Simulación asistida con un chat de asesoramiento en tiempo real.",
         "mode_live_title": "Modo Live",
         "mode_live_desc": "Interfaz sin distracciones centrada puramente en la conversación en vivo con Alex.",
@@ -290,7 +290,7 @@ UI_TEXTS = {
         "hero_badges": ["Multilíngue", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
 
         "mode_btn": "Modo",
-        "mode_classic_title": "Classic MVP",
+        "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Simulação assistida com chat de orientação ao lado para coaching ao vivo.",
         "mode_live_title": "Modo Live",
         "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo com Alex.",

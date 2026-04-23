@@ -69,14 +69,25 @@ def render_header(info_text: str = ""):
             # --- PERSISTENT MODE SELECTOR ---
             with st.popover(f"{T.get('mode_btn', 'Mode')} ⚙️", use_container_width=True):
                 st.markdown(f"**{T.get('mode_btn', 'Mode')} Select**")
-                modes = ("Classic MVP", "Live Mode (Sprint 1 Test)")
-                current_mode = st.session_state.get("app_mode", "Classic MVP")
                 
-                # Check if we need to initialize or change app_mode
+                modes = (T["mode_classic_title"], T["mode_live_title"])
+                
+                # Handle legacy mode names for smooth transition
+                current_mode = st.session_state.get("app_mode", modes[0])
+                if current_mode == "Classic MVP":
+                    current_mode = modes[0]
+                elif current_mode == "Live Mode (Sprint 1 Test)":
+                    current_mode = modes[1]
+
+                try:
+                    current_index = modes.index(current_mode)
+                except ValueError:
+                    current_index = 0 # Default to first mode if not found
+
                 new_mode = st.radio(
                     "Simulation Mode",
                     modes,
-                    index=0 if current_mode == "Classic MVP" else 1,
+                    index=current_index,
                     label_visibility="collapsed",
                     key="app_mode_radio_internal"
                 )

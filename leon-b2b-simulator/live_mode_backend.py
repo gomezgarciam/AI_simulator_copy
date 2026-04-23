@@ -58,6 +58,13 @@ class SpeechStreamer:
         self.chat_session = None
         self.metadata = metadata
 
+        # --- SILENCE DETECTION ---
+        self.silence_timer: Optional[threading.Timer] = None
+        self.last_transcript = ""
+        self.silence_threshold = 2.0  # seconds
+        self.is_processing = False
+        self.response_triggered = False
+
     def fill_buffer(self):
         while not self.closed:
             try:
@@ -79,7 +86,36 @@ class SpeechStreamer:
         except Exception as e:
             logger.error(f"WebSocket Send Error: {e}")
 
+    def _handle_silence(self):
+        if self.closed or not self.last_transcript or self.response_triggered:
+            return
+        
+        logger.info("🤫 Silencio detectado. Procesando el último fragmento.")
+        self.response_triggered = True
+        
+        asyncio.run_coroutine_threadsafe(
+            self.process_and_respond(self.last_transcript),
+            self.loop
+        )
+
+    def _reset_silence_timer(self):
+        if self.silence_timer:
+            self.silence_timer.cancel()
+        
+        self.silence_timer = threading.Timer(self.silence_threshold, self._handle_silence)
+        self.silence_timer.start()
+        
+        asyncio.run_coroutine_threadsafe(
+            self.safe_send({"type": "vad_timer_reset", "duration": self.silence_threshold}),
+            self.loop
+        )
+
     async def process_and_respond(self, user_text):
+        if self.is_processing:
+            logger.warning("⚠️ Intento de procesar mientras ya hay una respuesta en curso. Ignorando.")
+            return
+
+        self.is_processing = True
         try:
             logger.info(f"🤖 [ALEX ENGINE] Iniciando procesamiento para: '{user_text}'")
             logger.info(f"📊 [METADATA] Company: {self.metadata.get('target_company')}, Role: {self.metadata.get('role')}, Lang: {self.language}")
@@ -129,6 +165,11 @@ class SpeechStreamer:
                 "type": "error",
                 "message": f"Error generando respuesta: {str(e)}"
             })
+        finally:
+            self.is_processing = False
+            self.response_triggered = False
+            self.last_transcript = ""
+
 
     def run(self):
         logger.info(f"🎙️ Iniciando STT Stream para: {self.language_code} @ {self.sample_rate}Hz")
@@ -158,7 +199,7 @@ class SpeechStreamer:
             )
 
             for response in responses:
-                if self.closed:
+                if self.closed or self.response_triggered:
                     break
 
                 if not response.results:
@@ -173,6 +214,8 @@ class SpeechStreamer:
 
                 logger.info(f"📝 STT {'FINAL' if is_final else 'INTERIM'}: {transcript}")
 
+                self.last_transcript = transcript
+
                 asyncio.run_coroutine_threadsafe(
                     self.safe_send({
                         "type": "user_transcript",
@@ -182,13 +225,14 @@ class SpeechStreamer:
                     self.loop
                 )
 
-                # TRIGGER: Procesamos si es final O si el transcript es lo suficientemente largo y parece estable
-                if (is_final and len(transcript.strip()) > 1) or (not is_final and len(transcript.strip()) > 50):
-                    logger.info("🚀 [ALEX ENGINE] Disparando respuesta por longitud o finalización.")
-                    asyncio.run_coroutine_threadsafe(
-                        self.process_and_respond(transcript),
-                        self.loop
-                    )
+                if not self.response_triggered:
+                    self._reset_silence_timer()
+
+                if is_final and not self.response_triggered:
+                    logger.info("🚀 [ALEX ENGINE] Disparando respuesta por 'is_final'")
+                    if self.silence_timer:
+                        self.silence_timer.cancel()
+                    self._handle_silence()
 
         except Exception as e:
             logger.error(f"STT Pipeline Error: {e}")

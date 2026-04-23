@@ -21,6 +21,7 @@
       .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #dadce0; }
       .status-dot.active { background: #1e8e3e; box-shadow: 0 0 4px #1e8e3e; }
       #debug-log { font-size: 10px; color: #9aa0a6; font-family: monospace; margin-top: 8px; border-top: 1px solid #f1f3f4; padding-top: 8px; }
+      #vad-timer { font-size: 12px; color: #1e8e3e; font-style: italic; text-align: center; height: 18px; transition: opacity 0.3s; }
     </style>
   </head>
   <body>
@@ -33,8 +34,9 @@
         </div>
       </div>
       
+      <div id="vad-timer"></div>
       <div id="chat-history">
-        <div class="bubble alex">Hello, I'm Alex. I'm ready to listen.</div>
+        
       </div>
 
       <div id="debug-log">Ready.</div>
@@ -51,21 +53,46 @@
       const statusDot = document.getElementById("status-dot");
       const statusText = document.getElementById("status-text");
       const debugLog = document.getElementById("debug-log");
+      const vadTimerDiv = document.getElementById("vad-timer");
 
       let audioContext = null, processor = null, input = null, stream = null, socket = null;
       let isRecording = false, isCleaningUp = false;
       let chunksSent = 0;
       let sessionMetadata = { language: "English", target_company: "Google", role: "CTO" };
+      
+      let lastUserBubble = null;
+      let vadCountdownInterval = null;
 
-      const BUTTON_TEXTS = {
-        "English": { start: "Start Live Session", stop: "Stop Session", live: "Live", disc: "Disconnected" },
-        "Spanish": { start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", live: "En Vivo", disc: "Desconectado" },
-        "Portuguese": { start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", live: "Ao Vivo", disc: "Desconectado" }
+      const UI_TEXTS = {
+        "English": { 
+            start: "Start Live Session", stop: "Stop Session", 
+            live: "Live", disc: "Disconnected", connecting: "Connecting...",
+            alex_greeting: "Hello, I'm Alex. I'm ready to listen.",
+            thinking: "Alex is thinking..."
+        },
+        "Spanish": { 
+            start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", 
+            live: "En Vivo", disc: "Desconectado", connecting: "Conectando...",
+            alex_greeting: "Hola, soy Alex. Estoy listo para escuchar.",
+            thinking: "Alex está pensando..."
+        },
+        "Portuguese": { 
+            start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", 
+            live: "Ao Vivo", disc: "Desconectado", connecting: "Conectando...",
+            alex_greeting: "Olá, eu sou o Alex. Estou pronto para ouvir.",
+            thinking: "Alex está a pensar..."
+        }
       };
 
       function log(msg) {
         console.log(msg);
         debugLog.innerText = msg;
+      }
+      
+      function stopVadTimer() {
+        if (vadCountdownInterval) clearInterval(vadCountdownInterval);
+        vadTimerDiv.innerText = "";
+        vadTimerDiv.style.opacity = 0;
       }
 
       window.addEventListener("message", (e) => {
@@ -76,16 +103,18 @@
       });
 
       function updateUI() {
-        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
         if (!isRecording) {
           recordBtn.innerText = t.start;
           statusText.innerText = t.disc;
+          chatHistory.innerHTML = '';
+          addBubble(t.alex_greeting, "alex");
         }
       }
 
-      function addBubble(text, side, isInterim = false) {
+      function addBubble(text, side) {
         const b = document.createElement("div");
-        b.className = `bubble ${side} ${isInterim ? 'interim' : ''}`;
+        b.className = `bubble ${side}`;
         b.innerText = text;
         chatHistory.appendChild(b);
         chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -114,34 +143,44 @@
           if (socket.readyState === WebSocket.OPEN) socket.close();
           socket = null;
         }
-        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
         recordBtn.innerText = t.start;
         recordBtn.classList.remove("recording");
         statusDot.classList.remove("active");
         statusText.innerText = t.disc;
+        stopVadTimer();
+        lastUserBubble = null;
       }
 
       async function startRecording() {
         if (isRecording) return;
+        
+        const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
+        
+        // --- RESET UI ---
         isRecording = true;
         chunksSent = 0;
-        const t = BUTTON_TEXTS[sessionMetadata.language] || BUTTON_TEXTS["English"];
+        lastUserBubble = null;
+        chatHistory.innerHTML = '';
+        addBubble(t.alex_greeting, "alex");
+
         recordBtn.innerText = t.stop;
         recordBtn.classList.add("recording");
-        statusText.innerText = "Connecting...";
+        statusText.innerText = t.connecting;
 
         try {
-          // 1. WebSocket (Auto-detect Cloud Shell vs Production)
+          // 1. WebSocket
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
           let wsHost = window.location.host;
           
-          // Si estamos en Cloud Shell Web Preview, el backend está en el puerto 8000
-          if (wsHost.includes("cloudshell.dev") && wsHost.includes("8080")) {
-            wsHost = wsHost.replace("8080", "8000");
+          if (wsHost.startsWith("8080-") && wsHost.includes("cloudshell.dev")) {
+            wsHost = wsHost.replace("8080-", "8000-");
+          } else if (wsHost.includes(":8080")) {
+            wsHost = wsHost.replace(":8080", ":8000");
           }
           
           const wsUrl = `${protocol}//${wsHost}/ws/live-transcribe`;
-          console.log("Connecting to WebSocket:", wsUrl);
+          log("Connecting to WebSocket: " + wsUrl);
           socket = new WebSocket(wsUrl);
 
           socket.onopen = async () => {
@@ -149,17 +188,15 @@
             statusDot.classList.add("active");
             statusText.innerText = t.live;
 
-            // 2. Audio Context FIRST to get real sample rate
+            // 2. Audio Context
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // FORZAR 16000Hz para máxima compatibilidad con STT
             audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
             if (audioContext.state === 'suspended') await audioContext.resume();
             
             const realSampleRate = audioContext.sampleRate;
-            log(`🎧 Audio Initialized @ ${realSampleRate}Hz (Forced 16000)`);
+            log(`🎧 Audio Initialized @ ${realSampleRate}Hz`);
 
-            // 3. Send Metadata with REAL sample rate
+            // 3. Send Metadata
             socket.send(JSON.stringify({...sessionMetadata, sample_rate: realSampleRate}));
 
             // 4. Start Capture
@@ -175,8 +212,6 @@
                 pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
               }
               socket.send(pcmData.buffer);
-              chunksSent++;
-              if (chunksSent % 25 === 0) log(`Sent ${chunksSent} chunks`);
             };
 
             input.connect(processor);
@@ -185,18 +220,60 @@
 
           socket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
+            
             if (data.type === "user_transcript") {
-              addBubble(data.transcript, "user", !data.is_final);
+                stopVadTimer();
+                if (!lastUserBubble) {
+                    lastUserBubble = addBubble(data.transcript, "user");
+                    lastUserBubble.classList.add("interim");
+                } else {
+                    lastUserBubble.innerText = data.transcript;
+                }
+
+                if (data.is_final) {
+                    lastUserBubble.classList.remove("interim");
+                    lastUserBubble = null;
+                }
             } else if (data.type === "alex_response") {
-              addBubble(data.transcript, "alex");
-              if (data.audio) {
-                const bytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
-                const audio = new Audio(URL.createObjectURL(new Blob([bytes], {type: "audio/mp3"})));
-                audio.play();
-              }
+                stopVadTimer();
+                lastUserBubble = null;
+                addBubble(data.transcript, "alex");
+
+                if (data.audio) {
+                    if (processor && input) {
+                        input.disconnect(processor);
+                        log("🎤 Mic muted for Alex's response.");
+                    }
+                    
+                    const bytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+                    const audio = new Audio(URL.createObjectURL(new Blob([bytes], {type: "audio/mp3"})));
+                    
+                    audio.onended = () => {
+                        if (input && processor) {
+                            input.connect(processor);
+                            log("🎤 Mic resumed.");
+                        }
+                    };
+                    audio.play();
+                }
+            } else if (data.type === "vad_timer_reset") {
+                stopVadTimer();
+                let timeLeft = data.duration;
+                vadTimerDiv.style.opacity = 1;
+                
+                vadCountdownInterval = setInterval(() => {
+                    timeLeft -= 0.1;
+                    if (timeLeft <= 0) {
+                        clearInterval(vadCountdownInterval);
+                        vadTimerDiv.innerText = t.thinking;
+                    } else {
+                        vadTimerDiv.innerText = `Alex will respond in ${timeLeft.toFixed(1)}s...`;
+                    }
+                }, 100);
+
             } else if (data.type === "error") {
-              log(`❌ Backend Error: ${data.message}`);
-              cleanup();
+                log(`❌ Backend Error: ${data.message}`);
+                cleanup();
             }
           };
 
@@ -210,6 +287,9 @@
       }
 
       recordBtn.onclick = () => isRecording ? cleanup() : startRecording();
+      
+      // Initial UI setup
+      updateUI();
       Streamlit.setComponentReady();
       setInterval(Streamlit.setFrameHeight, 500);
     </script>

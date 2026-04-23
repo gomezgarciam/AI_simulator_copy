@@ -66,8 +66,10 @@ st.set_page_config(
 
 initialize_session_state()
 
-# --- MODE ---
-mode = st.session_state.get("app_mode", "Classic MVP")
+# --- LANGUAGE & MODE ---
+lang_choice = st.session_state.get("language_selector", "English")
+T = UI_TEXTS[lang_choice]
+mode = st.session_state.get("app_mode", T["mode_classic_title"])
 
 # =========================================================
 # 2. CLIENTS / RESOURCES
@@ -87,7 +89,7 @@ def load_document_knowledge():
     # Solo intentamos cargar si el bucket está configurado y no es el default de cloudshell
     if not INTERNAL_DOCS_BUCKET or "your-bucket" in INTERNAL_DOCS_BUCKET:
         return [], []
-    
+
     try:
         # Añadimos un mensaje de estado que no bloquee
         with st.spinner("Conectando con base de conocimientos FY26..."):
@@ -118,19 +120,7 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # 4. SETUP SCREEN
 # =========================================================
 if st.session_state.target_company is None:
-    # We use the language selector from the header directly
-    render_header(
-        info_text=UI_TEXTS["English"].get(
-            "simulator_info",
-            "This simulator recreates enterprise sales conversations and provides real-time guidance."
-        )
-    )
-    
-    lang_choice = st.session_state.get("language_selector", "English")
-    T = UI_TEXTS[lang_choice]
-
-    lang_choice = st.session_state.get("language_selector", "English")
-    T = UI_TEXTS[lang_choice]
+    render_header(info_text=T.get("simulator_info", ""))
 
     st.markdown(
         f"""
@@ -293,36 +283,34 @@ if st.session_state.target_company is None:
 # =========================================================
 # 5. LIVE MODE OVERRIDE (Sprint 2)
 # =========================================================
-if mode == "Live Mode (Sprint 1 Test)":
-    T = UI_TEXTS[st.session_state.language]
+if mode == T["mode_live_title"]:
     render_header(info_text=T.get("simulator_info", ""))
-    
+
     st.title(f"Live Mode: {st.session_state.target_company}")
-    
+
     # Preparamos metadatos reales de la sesión activa
     metadata = {
         "target_company": st.session_state.target_company,
         "role": st.session_state.role,
         "language": st.session_state.language
     }
-    
+
     render_metric_strip(
         metadata["target_company"],
         metadata["role"],
         metadata["language"],
         T=T
     )
-    
+
     # Render our custom component with metadata
     live_mic_recorder(metadata=metadata)
-    
+
     st.stop()
 
 # =========================================================
-# 6. ACTIVE SESSION TEXTS (Classic MVP)
+# 6. ACTIVE SESSION (Assisted Mode)
 # =========================================================
-T = UI_TEXTS[st.session_state.language]
-
+# T is already defined
 # assistant siempre abierto
 st.session_state.show_assistant = True
 
