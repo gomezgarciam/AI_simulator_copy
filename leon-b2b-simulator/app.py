@@ -46,6 +46,7 @@ from src.engines.roleplay_engine import (
 from src.prompts.assistant import create_sales_assistant_prompt
 from src.prompts.assistant import create_document_assistant_prompt
 from src.engines.assistant_engine import generate_sales_assistant_response
+from src.evaluation.rubric_engine import evaluate_transcript, format_transcript_from_messages
 import streamlit as st
 import io
 import json
@@ -420,23 +421,25 @@ with left_col:
 
                     ai_text = response_ai.text
 
-                    if "feedback_table" in ai_text:
-                        try:
-                            start = ai_text.find("{")
-                            end = ai_text.rfind("}") + 1
-                            data = json.loads(ai_text[start:end])
+                    if "FINISH_CALL" in ai_text:
+                        clean_ai_text = ai_text.replace("FINISH_CALL", "").strip()
+                        st.session_state.messages.append({"role": "assistant", "content": clean_ai_text})
+                        st.session_state.last_audio = synthesize_speech(tts_client, clean_ai_text, st.session_state.language)
+                        
+                        with st.spinner(T.get("evaluating_spinner", "Generating professional evaluation...")):
+                            report = evaluate_transcript(format_transcript_from_messages(st.session_state.messages), genai_client, MODEL_ID)
+                        
+                        st.divider()
+                        st.subheader(f"📊 {T.get('evaluation_results', 'Evaluation Results')}")
+                        c1, c2, c3 = st.columns(3)
+                        c1.metric(T.get("final_score_label", "Final Score"), f"{report['final_score']}%")
+                        c2.metric(T.get("status_label", "Status"), report["status"])
+                        c3.metric(T.get("points_label", "Points"), f"{report['actual_points']} / {report['max_points']}")
 
-                            st.session_state.messages.append({
-                                "role": "assistant",
-                                "content": T["feedback_intro"],
-                            })
-
-                            df = pd.DataFrame(data["feedback_table"])
-                            st.dataframe(df, hide_index=True, use_container_width=True)
-                            st.info(data.get("final_comment", ""))
-                            st.stop()
-                        except Exception:
-                            pass
+                        st.dataframe(pd.DataFrame(report["evaluations"])[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]], hide_index=True, use_container_width=True)
+                        st.info(report.get("final_comment", ""))
+                        st.balloons()
+                        st.stop()
 
                     st.session_state.messages.append({
                         "role": "assistant",

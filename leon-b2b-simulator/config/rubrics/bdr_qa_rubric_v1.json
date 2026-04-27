@@ -1,0 +1,169 @@
+{
+  "rubric_id": "bdr_qa_rubric_v1",
+  "rubric_name": "BDR QA Rubric",
+  "version": "1.0",
+  "description": "Rubric used to evaluate BDR roleplay performance in the Leon B2B Simulator.",
+  "scoring_scale": {
+    "Meets Expectations": 1.0,
+    "Partially Meets Expectations": 0.5,
+    "Needs Improvement": 0.0,
+    "N/A": null,
+    "Auto-Fail": "auto_fail"
+  },
+  "auto_fail_rule": {
+    "enabled": true,
+    "parameter": "Policies and Professionalism",
+    "condition": "If this parameter is rated as Auto-Fail, the final score must be 0 regardless of all other scores."
+  },
+  "parameters": [
+    {
+      "id": "policies_professionalism",
+      "category": "Compliance Critical",
+      "category_weight": 0.0,
+      "parameter": "Policies and Professionalism",
+      "type": "auto_fail",
+      "rubric_weight": 0.0,
+      "input": "Was the call conducted with a professional tone and full adherence to all Google and regulatory policies? Request permission to record the call in the initial 45 seconds. Preserve Google's confidential or internal-only information.",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Auto-Fail",
+        "N/A"
+      ]
+    },
+    {
+      "id": "engagement",
+      "category": "Customer Critical",
+      "category_weight": 0.4,
+      "parameter": "Engagement",
+      "type": "scored",
+      "rubric_weight": 0.12,
+      "input": "Did the BDR introduce himself or herself, explain the purpose of the call and engage the prospective customer?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "closing",
+      "category": "Customer Critical",
+      "category_weight": 0.4,
+      "parameter": "Closing",
+      "type": "scored",
+      "rubric_weight": 0.12,
+      "input": "Did the BDR make adequate efforts to schedule a specialist meeting, summarize the conversation and communicate clear next steps?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "objection_handling",
+      "category": "Customer Critical",
+      "category_weight": 0.4,
+      "parameter": "Objection Handling",
+      "type": "scored",
+      "rubric_weight": 0.16,
+      "input": "Did the BDR effectively acknowledge, clarify, and address prospect objections while maintaining the flow of the conversation?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "economic_buyer",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Economic Buyer",
+      "type": "scored",
+      "rubric_weight": 0.135,
+      "input": "Did the BDR identify the Economic Buyer, meaning the person with final signing authority, and understand their specific business priorities?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "decision_criteria",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Decision Criteria",
+      "type": "scored",
+      "rubric_weight": 0.135,
+      "input": "Did the BDR uncover the specific technical, business, and financial criteria the customer will use to evaluate and select a solution?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "identified_pain",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Identified Pain",
+      "type": "scored",
+      "rubric_weight": 0.15,
+      "input": "Did the BDR identify a clear business pain point, its impact on the organization, cost of inaction, and a specific use case or application that would benefit from Google's solution?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "champion",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Champion",
+      "type": "scored",
+      "rubric_weight": 0.06,
+      "input": "Did the BDR identify a Champion, someone who will advocate for Google's solution internally, and confirm their willingness to do so?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "competition",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Competition",
+      "type": "scored",
+      "rubric_weight": 0.06,
+      "input": "Did the BDR inquire about competing solutions being considered and understand their strengths and weaknesses from the customer's perspective?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    },
+    {
+      "id": "paper_process",
+      "category": "Business Critical",
+      "category_weight": 0.6,
+      "parameter": "Paper Process",
+      "type": "scored",
+      "rubric_weight": 0.06,
+      "input": "Did the BDR clarify the customer's procurement process, including timelines, legal review, and required approvals?",
+      "allowed_ratings": [
+        "Meets Expectations",
+        "Partially Meets Expectations",
+        "Needs Improvement",
+        "N/A"
+      ]
+    }
+  ]
+}

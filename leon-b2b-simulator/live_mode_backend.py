@@ -15,6 +15,7 @@ from src.config.settings import GOOGLE_CLOUD_PROJECT, MODEL_ID
 from src.services.speech_service import get_speech_clients, synthesize_speech
 from src.services.genai_service import get_genai_client
 from src.engines.roleplay_engine import get_or_create_roleplay_session, send_roleplay_message
+from src.evaluation.rubric_engine import evaluate_transcript, format_transcript_from_messages
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger("live_backend")
@@ -57,6 +58,7 @@ class SpeechStreamer:
         _, self.tts_client = get_speech_clients()
         self.chat_session = None
         self.metadata = metadata
+        self.session_messages = [] # Track history for evaluation
 
         # --- SILENCE DETECTION ---
         self.silence_timer: Optional[threading.Timer] = None
@@ -119,6 +121,11 @@ class SpeechStreamer:
         try:
             logger.info(f"🤖 [ALEX ENGINE] Iniciando procesamiento para: '{user_text}'")
             logger.info(f"📊 [METADATA] Company: {self.metadata.get('target_company')}, Role: {self.metadata.get('role')}, Lang: {self.language}")
+            
+            # Save user message to history
+            self.session_messages.append({"role": "user", "content": user_text})
+
+            stop_phrase = "FINISH_CALL"
 
             self.chat_session = get_or_create_roleplay_session(
                 existing_chat_session=self.chat_session,
@@ -127,7 +134,7 @@ class SpeechStreamer:
                 target_company=self.metadata.get("target_company", "Google"),
                 role=self.metadata.get("role", "CTO"),
                 language=self.language,
-                stop_phrase="FINISH_CALL"
+                stop_phrase=stop_phrase
             )
             
             logger.info(f"⏳ [ALEX ENGINE] Enviando mensaje a Gemini...")
@@ -141,6 +148,30 @@ class SpeechStreamer:
             if response_ai and response_ai.text and not self.closed:
                 ai_text = response_ai.text
                 logger.info(f"🎙️ [ALEX ENGINE] Alex respondió: '{ai_text}'")
+                
+                # Save assistant message to history
+                self.session_messages.append({"role": "assistant", "content": ai_text})
+
+                # Check for completion
+                if stop_phrase in ai_text:
+                    clean_ai_text = ai_text.replace(stop_phrase, "").strip()
+                    logger.info(f"🏁 Simulación finalizada. Evaluando...")
+                    
+                    # 1. Send final message and audio
+                    audio_content = synthesize_speech(self.tts_client, clean_ai_text, self.language)
+                    await self.safe_send({
+                        "type": "alex_response",
+                        "transcript": clean_ai_text,
+                        "audio": base64.b64encode(audio_content).decode("utf-8")
+                    })
+                    
+                    # 2. Evaluate and send report
+                    report = evaluate_transcript(format_transcript_from_messages(self.session_messages), self.genai_client, MODEL_ID)
+                    await self.safe_send({
+                        "type": "session_report",
+                        "report": report
+                    })
+                    return
 
                 audio_content = synthesize_speech(
                     self.tts_client,

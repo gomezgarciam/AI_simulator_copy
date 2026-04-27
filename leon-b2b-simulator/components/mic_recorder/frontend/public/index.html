@@ -20,7 +20,7 @@
       .status-container { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #5f6368; }
       .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #dadce0; }
       .status-dot.active { background: #1e8e3e; box-shadow: 0 0 4px #1e8e3e; }
-      #debug-log { font-size: 10px; color: #9aa0a6; font-family: monospace; margin-top: 8px; border-top: 1px solid #f1f3f4; padding-top: 8px; }
+      #debug-log { font-size: 10px; color: #9aa0a6; font-family: monospace; margin-top: 8px; border-top: 1px solid #f1f3f4; padding-top: 8px; overflow-wrap: break-word; }
       #vad-timer { font-size: 12px; color: #1e8e3e; font-style: italic; text-align: center; height: 18px; transition: opacity 0.3s; }
     </style>
   </head>
@@ -59,7 +59,6 @@
       let isRecording = false, isCleaningUp = false;
       let chunksSent = 0;
       let sessionMetadata = { language: "English", target_company: "Google", role: "CTO" };
-      
       let lastUserBubble = null;
       let vadCountdownInterval = null;
 
@@ -112,9 +111,10 @@
         }
       }
 
-      function addBubble(text, side) {
+      function addBubble(text, side, isInterim = false) {
         const b = document.createElement("div");
         b.className = `bubble ${side}`;
+        if (isInterim) b.classList.add("interim");
         b.innerText = text;
         chatHistory.appendChild(b);
         chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -190,14 +190,12 @@
 
             // 2. Audio Context
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-            if (audioContext.state === 'suspended') await audioContext.resume();
-            
-            const realSampleRate = audioContext.sampleRate;
-            log(`🎧 Audio Initialized @ ${realSampleRate}Hz`);
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            log(`🎧 Audio Initialized @ ${sampleRate}Hz`);
 
             // 3. Send Metadata
-            socket.send(JSON.stringify({...sessionMetadata, sample_rate: realSampleRate}));
+            socket.send(JSON.stringify({...sessionMetadata, sample_rate: sampleRate}));
 
             // 4. Start Capture
             input = audioContext.createMediaStreamSource(stream);
@@ -224,8 +222,7 @@
             if (data.type === "user_transcript") {
                 stopVadTimer();
                 if (!lastUserBubble) {
-                    lastUserBubble = addBubble(data.transcript, "user");
-                    lastUserBubble.classList.add("interim");
+                    lastUserBubble = addBubble(data.transcript, "user", true);
                 } else {
                     lastUserBubble.innerText = data.transcript;
                 }
@@ -274,6 +271,16 @@
             } else if (data.type === "error") {
                 log(`❌ Backend Error: ${data.message}`);
                 cleanup();
+            } else if (data.type === "session_report") {
+              const r = data.report;
+              const div = document.createElement("div");
+              div.style = "background:white; padding:15px; border-radius:12px; border:2px solid #1a73e8; margin-top:10px;";
+              div.innerHTML = `<h3 style="margin-top:0;">📊 Report: ${r.final_score}%</h3>
+                               <p><strong>Status:</strong> ${r.status}</p>
+                               <p><em>${r.final_comment}</em></p>`;
+              chatHistory.appendChild(div);
+              chatHistory.scrollTop = chatHistory.scrollHeight;
+              cleanup();
             }
           };
 
@@ -294,4 +301,5 @@
       setInterval(Streamlit.setFrameHeight, 500);
     </script>
   </body>
+  
 </html>
