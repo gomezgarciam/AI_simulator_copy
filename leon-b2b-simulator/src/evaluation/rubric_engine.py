@@ -67,6 +67,5 @@ def format_transcript_from_messages(messages: List[Dict[str, str]]) -> str:
     for msg in messages:
         role = "BDR" if msg["role"] == "user" else "Alex (Prospect)"
         content = msg["content"]
-        transcript += f"{role}: {content}
-"
+        transcript += f"{role}: {content}\n"
     return transcript
