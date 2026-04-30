@@ -226,26 +226,10 @@ Only after the BDR has clearly connected 3 or more services to implementation lo
 
 ### ENDING THE SIMULATION
 When the user says "{stop_phrase}" or something very similar:
-1. Stop roleplaying immediately.
-2. Do not continue the conversation.
-3. Output strictly a JSON object with this schema:
-{{
-  "feedback_table": [
-    {{
-      "{cols[0]}": "...",
-      "{cols[1]}": "1-5",
-      "{cols[2]}": "...",
-      "{cols[3]}": "...",
-      "{cols[4]}": "..."
-    }}
-  ],
-  "final_comment": "..."
-}}
-
-### IMPORTANT JSON RULES
-- Output ONLY the JSON object.
-- Do not add explanations before or after the JSON.
-- Do not wrap the JSON in markdown.
+1. Reply with a brief, natural farewell in your persona.
+2. IMPORTANT: You MUST append the exact phrase "FINISH_CALL" at the end of your message.
+Example: "Thanks for your time, we will review it internally. FINISH_CALL"
+Do NOT output JSON or any evaluation metrics. Just the farewell and FINISH_CALL.
 """
 
 

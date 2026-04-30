@@ -274,10 +274,42 @@
             } else if (data.type === "session_report") {
               const r = data.report;
               const div = document.createElement("div");
-              div.style = "background:white; padding:15px; border-radius:12px; border:2px solid #1a73e8; margin-top:10px;";
-              div.innerHTML = `<h3 style="margin-top:0;">📊 Report: ${r.final_score}%</h3>
-                               <p><strong>Status:</strong> ${r.status}</p>
-                               <p><em>${r.final_comment}</em></p>`;
+              div.style = "background: white; padding: 20px; border-radius: 12px; border: 2px solid #1a73e8; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+              
+              // Crear filas de la tabla con las evaluaciones
+              let evalsHtml = r.evaluations.map(ev => 
+                  `<tr>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${ev.parameter}</strong></td>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee;">${ev.rating}</td>
+                      <td style="padding: 8px; border-bottom: 1px solid #eee; color: #1e8e3e;"><strong>${ev.points} pts</strong></td>
+                  </tr>`
+              ).join('');
+
+              div.innerHTML = `
+                  <h3 style="margin-top:0; color: #1a73e8; display: flex; justify-content: space-between;">
+                      <span>📊 Evaluación Final</span>
+                      <span>${r.final_score}%</span>
+                  </h3>
+                  <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                      <span style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 16px; font-size: 14px;"><strong>Estado:</strong> ${r.status}</span>
+                      <span style="background: #e6f4ea; color: #1e8e3e; padding: 4px 10px; border-radius: 16px; font-size: 14px;"><strong>Total:</strong> ${r.actual_points}/${r.max_points} pts</span>
+                  </div>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; margin-bottom: 15px;">
+                      <thead>
+                          <tr style="background: #f8f9fa;">
+                              <th style="padding: 8px;">Parámetro</th>
+                              <th style="padding: 8px;">Calificación</th>
+                              <th style="padding: 8px;">Puntos</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          ${evalsHtml}
+                      </tbody>
+                  </table>
+                  <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 13px;">
+                      <strong>Feedback Ejecutivo:</strong><br><em>${r.final_comment}</em>
+                  </div>
+              `;
               chatHistory.appendChild(div);
               chatHistory.scrollTop = chatHistory.scrollHeight;
               cleanup();

@@ -150,3 +150,52 @@ def render_metric_strip(company: str, role: str, language: str, T=None):
 
 def render_glass_tip(text_value: str):
     st.markdown(f'<div class="glass-tip">{text_value}</div>', unsafe_allow_html=True)
+
+def render_evaluation_card(evaluation: dict, T: dict):
+    """
+    Renders a single evaluation item as a card with a score-based color scheme.
+    """
+    rating = evaluation.get("rating", "N/A")
+    
+    # Define color scheme based on rating
+    if rating == "Meets Expectations":
+        border_color = "#1E8E3E"  # Green
+        background_color = "rgba(30, 142, 62, 0.05)"
+        emoji = "✅"
+    elif rating == "Partially Meets Expectations":
+        border_color = "#F29900"  # Amber
+        background_color = "rgba(242, 153, 0, 0.05)"
+        emoji = "⚠️"
+    elif rating == "Needs Improvement":
+        border_color = "#D93025"  # Red
+        background_color = "rgba(217, 48, 37, 0.05)"
+        emoji = "❌"
+    elif rating == "Auto-Fail":
+        border_color = "#D93025"  # Red
+        background_color = "rgba(217, 48, 37, 0.1)"
+        emoji = "🚫"
+    else:  # N/A or other
+        border_color = "#DADCE0"  # Grey
+        background_color = "rgba(218, 220, 224, 0.1)"
+        emoji = "➡️"
+
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div style="border-left: 5px solid {border_color}; background-color: {background_color}; padding: 1rem; border-radius: 8px;">
+                <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">{emoji} {evaluation['parameter']}</div>
+                <div style="font-style: italic; color: {border_color}; margin-bottom: 1rem;">{T.get("rating_label", "Rating")}: {rating}</div>
+                
+                <div style="margin-bottom: 0.75rem;">
+                    <strong style="font-size: 0.9rem;">{T.get("evidence_label", "Evidence")}:</strong>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">{evaluation.get('evidence', 'No evidence provided.')}</div>
+                </div>
+                
+                <div>
+                    <strong style="font-size: 0.9rem;">{T.get("improvement_label", "Improvement Tip")}:</strong>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">{evaluation.get('improvement_tip', 'No tip provided.')}</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )

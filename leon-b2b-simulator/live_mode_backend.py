@@ -72,12 +72,13 @@ class SpeechStreamer:
             try:
                 chunk = self.audio_queue.get(timeout=1)
                 if chunk is None:
+                    logger.info("Received None chunk, stopping buffer fill.")
                     return
                 self.chunk_count += 1
-                if self.chunk_count % 50 == 0:
-                    logger.info(f"📥 Backend: Recibidos {self.chunk_count} fragmentos de audio.")
+                logger.info(f"📥 Backend: Chunk {self.chunk_count}, size: {len(chunk)}")
                 yield chunk
             except queue.Empty:
+                logger.info("Queue empty, continuing.")
                 continue
 
     async def safe_send(self, data):
@@ -220,8 +221,11 @@ class SpeechStreamer:
         )
 
         def request_generator():
+            logger.info("Starting request_generator")
             for content in self.fill_buffer():
+                logger.info(f"Yielding chunk of size {len(content)}")
                 yield speech.StreamingRecognizeRequest(audio_content=content)
+            logger.info("Exiting request_generator")
 
         try:
             responses = self.client.streaming_recognize(

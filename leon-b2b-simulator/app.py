@@ -18,6 +18,7 @@ from src.ui.components import (
     render_metric_strip,
     render_glass_tip,
     live_mic_recorder,
+    render_evaluation_card,
 )
 from src.services.pdf_service import (
     summarize_text,
@@ -436,8 +437,27 @@ with left_col:
                         c2.metric(T.get("status_label", "Status"), report["status"])
                         c3.metric(T.get("points_label", "Points"), f"{report['actual_points']} / {report['max_points']}")
 
-                        st.dataframe(pd.DataFrame(report["evaluations"])[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]], hide_index=True, use_container_width=True)
                         st.info(report.get("final_comment", ""))
+                        
+                        # Crear el dataframe
+                        df_evals = pd.DataFrame(report["evaluations"])
+                        
+                        # --- NUEVO: Desglose por Categoría ---
+                        st.markdown("### 📈 Desglose por Categoría")
+                        cat_scores = df_evals.groupby("category")["points"].sum().reset_index()
+                        cat_cols = st.columns(len(cat_scores))
+                        for idx, row in cat_scores.iterrows():
+                            cat_cols[idx].metric(row["category"], f"{row['points']} pts")
+
+                        # --- NUEVO: Tabla Detallada Limpia ---
+                        st.markdown("### 📝 Detalle de Evaluación MEDPICC")
+                        st.dataframe(
+                            df_evals[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]],
+                            hide_index=True,
+                            use_container_width=True
+                        )
+                        
+                        st.info(f"**Comentario Ejecutivo:** {report.get('final_comment', '')}")
                         st.balloons()
                         st.stop()
 

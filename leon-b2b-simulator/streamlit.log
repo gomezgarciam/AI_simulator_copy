@@ -1,9 +1,9 @@
 
   You can now view your Streamlit app in your browser.
 
-  Local URL: http://localhost:8080
-  Network URL: http://10.88.0.3:8080
-  External URL: http://34.134.72.46:8080
+  Local URL: http://localhost:8501
+  Network URL: http://10.88.0.4:8501
+  External URL: http://34.173.247.223:8501
 
-/home/gomezgarciam/.local/lib/python3.12/site-packages/pydub/utils.py:170: RuntimeWarning: Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work
-  warn("Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work", RuntimeWarning)
+could not convert string to float: b'0.00-11343044' : FloatObject (b'0.00-11343044') invalid; use 0.0 instead
+could not convert string to float: b'0.00-11343044' : FloatObject (b'0.00-11343044') invalid; use 0.0 instead

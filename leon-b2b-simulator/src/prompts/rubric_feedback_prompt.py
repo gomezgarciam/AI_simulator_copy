@@ -5,6 +5,10 @@ def create_rubric_feedback_prompt(transcript: str, rubric_json: str) -> str:
     return f"""
 You are a Senior Sales Quality Assurance Auditor. Your task is to evaluate a BDR (Business Development Representative) sales call transcript based on the provided rubric.
 
+### ROLES IN THIS TRANSCRIPT:
+- The 'BDR' is the user, the salesperson being evaluated.
+- 'Alex (Prospect)' is the AI, the customer role-playing.
+
 ### MANDATORY EVALUATION TARGET:
 - You must evaluate ONLY the performance of the BDR (the person initiating the call).
 - Alex is the PROSPECT/CUSTOMER. DO NOT evaluate Alex's performance.
