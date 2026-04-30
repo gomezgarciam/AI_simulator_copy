@@ -234,8 +234,12 @@ class SpeechStreamer:
             )
 
             for response in responses:
-                if self.closed or self.response_triggered:
+                if self.closed:
                     break
+                
+                # Ignorar audio mientras Alex piensa o habla, sin matar el hilo
+                if self.response_triggered or self.is_processing:
+                    continue
 
                 if not response.results:
                     continue

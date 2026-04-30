@@ -9,6 +9,16 @@ export GOOGLE_CLOUD_LOCATION="us-central1"
 
 echo "🚀 Iniciando Recuperación del Sistema con Proyecto: $GOOGLE_CLOUD_PROJECT"
 
+# --- INSTALACIÓN AUTOMÁTICA DE DEPENDENCIAS ---
+if ! command -v nginx &> /dev/null || ! command -v ffmpeg &> /dev/null; then
+    echo "📦 Instalando dependencias del sistema (Nginx y FFmpeg)..."
+    sudo apt-get update
+    sudo apt-get install -y nginx ffmpeg
+else
+    echo "✅ Nginx y FFmpeg ya están instalados."
+fi
+# ----------------------------------------------
+
 # 1. LIMPIEZA DE PROCESOS (más robusta)
 echo "🧹 Limpiando procesos y puertos..."
 
