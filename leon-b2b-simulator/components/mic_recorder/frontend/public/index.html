@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AI Sales Simulator - Live Mode</title>
     <style>
-      body { margin: 0; font-family: 'Inter', 'Google Sans', sans-serif; background: transparent; color: #3c4043; }
+      body { margin: 0; font-family: "Inter", "Google Sans", sans-serif; background: transparent; color: #3c4043; }
       .container { display: flex; flex-direction: column; gap: 15px; padding: 10px; max-width: 100%; }
       #chat-history { display: flex; flex-direction: column; gap: 12px; max-height: 450px; overflow-y: auto; padding: 15px; border-radius: 12px; background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05); }
       .bubble { padding: 10px 16px; border-radius: 18px; max-width: 85%; font-size: 14px; line-height: 1.5; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s ease; }
@@ -33,12 +33,8 @@
           <span id="status-text">Disconnected</span>
         </div>
       </div>
-      
       <div id="vad-timer"></div>
-      <div id="chat-history">
-        
-      </div>
-
+      <div id="chat-history"></div>
       <div id="debug-log">Ready.</div>
     </div>
 
@@ -56,43 +52,20 @@
       const vadTimerDiv = document.getElementById("vad-timer");
 
       let audioContext = null, processor = null, input = null, stream = null, socket = null;
-      let isRecording = false, isCleaningUp = false;
+      let isRecording = false, isCleaningUp = false, isMuted = false, isSessionFinished = false;
       let chunksSent = 0;
       let sessionMetadata = { language: "English", target_company: "Google", role: "CTO" };
       let lastUserBubble = null;
       let vadCountdownInterval = null;
 
       const UI_TEXTS = {
-        "English": { 
-            start: "Start Live Session", stop: "Stop Session", 
-            live: "Live", disc: "Disconnected", connecting: "Connecting...",
-            alex_greeting: "Hello, I'm Alex. I'm ready to listen.",
-            thinking: "Alex is thinking..."
-        },
-        "Spanish": { 
-            start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", 
-            live: "En Vivo", disc: "Desconectado", connecting: "Conectando...",
-            alex_greeting: "Hola, soy Alex. Estoy listo para escuchar.",
-            thinking: "Alex está pensando..."
-        },
-        "Portuguese": { 
-            start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", 
-            live: "Ao Vivo", disc: "Desconectado", connecting: "Conectando...",
-            alex_greeting: "Olá, eu sou o Alex. Estou pronto para ouvir.",
-            thinking: "Alex está a pensar..."
-        }
+        "English": { start: "Start Live Session", stop: "Stop Session", live: "Live", disc: "Disconnected", connecting: "Connecting...", alex_greeting: "Hello, Im Alex. Im ready to listen.", thinking: "Alex is thinking..." },
+        "Spanish": { start: "Iniciar Sesión en Vivo", stop: "Detener Sesión", live: "En Vivo", disc: "Desconectado", connecting: "Conectando...", alex_greeting: "Hola, soy Alex. Estoy listo para escuchar.", thinking: "Alex está pensando..." },
+        "Portuguese": { start: "Iniciar Sessão ao Vivo", stop: "Parar Sessão", live: "Ao Vivo", disc: "Desconectado", connecting: "Conectando...", alex_greeting: "Olá, eu sou o Alex. Estou pronto para ouvir.", thinking: "Alex está a pensar..." }
       };
 
-      function log(msg) {
-        console.log(msg);
-        debugLog.innerText = msg;
-      }
-      
-      function stopVadTimer() {
-        if (vadCountdownInterval) clearInterval(vadCountdownInterval);
-        vadTimerDiv.innerText = "";
-        vadTimerDiv.style.opacity = 0;
-      }
+      function log(msg) { console.log(msg); debugLog.innerText = msg; }
+      function stopVadTimer() { if (vadCountdownInterval) clearInterval(vadCountdownInterval); vadTimerDiv.innerText = ""; vadTimerDiv.style.opacity = 0; }
 
       window.addEventListener("message", (e) => {
         if (e.data.type === "streamlit:render" && e.data.args.metadata) {
@@ -103,10 +76,10 @@
 
       function updateUI() {
         const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
-        if (!isRecording) {
+        if (!isRecording && !isSessionFinished) {
           recordBtn.innerText = t.start;
           statusText.innerText = t.disc;
-          chatHistory.innerHTML = '';
+          chatHistory.innerHTML = "";
           addBubble(t.alex_greeting, "alex");
         }
       }
@@ -128,10 +101,7 @@
         if (processor) { processor.disconnect(); processor = null; }
         if (input) { input.disconnect(); input = null; }
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        if (audioContext && audioContext.state !== "closed") {
-          try { await audioContext.close(); } catch(e) {}
-          audioContext = null;
-        }
+        if (audioContext && audioContext.state !== "closed") { try { await audioContext.close(); } catch(e) {} audioContext = null; }
         isCleaningUp = false;
       }
 
@@ -139,10 +109,7 @@
         log("Cleaning up session...");
         isRecording = false;
         await stopAudio();
-        if (socket) {
-          if (socket.readyState === WebSocket.OPEN) socket.close();
-          socket = null;
-        }
+        if (socket) { if (socket.readyState === WebSocket.OPEN) socket.close(); socket = null; }
         const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
         recordBtn.innerText = t.start;
         recordBtn.classList.remove("recording");
@@ -154,14 +121,14 @@
 
       async function startRecording() {
         if (isRecording) return;
-        
         const t = UI_TEXTS[sessionMetadata.language] || UI_TEXTS["English"];
         
-        // --- RESET UI ---
         isRecording = true;
+        isSessionFinished = false;
+        isMuted = false;
         chunksSent = 0;
         lastUserBubble = null;
-        chatHistory.innerHTML = '';
+        chatHistory.innerHTML = "";
         addBubble(t.alex_greeting, "alex");
 
         recordBtn.innerText = t.stop;
@@ -169,17 +136,9 @@
         statusText.innerText = t.connecting;
 
         try {
-          // 1. WebSocket
           const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-          let wsHost = window.location.host;
+          const wsUrl = `${protocol}//${window.location.host}/ws/live-transcribe`;
           
-          if (wsHost.startsWith("8080-") && wsHost.includes("cloudshell.dev")) {
-            wsHost = wsHost.replace("8080-", "8000-");
-          } else if (wsHost.includes(":8080")) {
-            wsHost = wsHost.replace(":8080", ":8000");
-          }
-          
-          const wsUrl = `${protocol}//${wsHost}/ws/live-transcribe`;
           log("Connecting to WebSocket: " + wsUrl);
           socket = new WebSocket(wsUrl);
 
@@ -188,16 +147,16 @@
             statusDot.classList.add("active");
             statusText.innerText = t.live;
 
-            // 2. Audio Context
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // Volvemos a la frecuencia nativa del navegador para evitar audios corruptos
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const sampleRate = audioContext.sampleRate;
-            log(`🎧 Audio Initialized @ ${sampleRate}Hz`);
+            const sr = audioContext.sampleRate;
+            log(`🎧 Audio Initialized @ ${sr}Hz`);
 
-            // 3. Send Metadata
-            socket.send(JSON.stringify({...sessionMetadata, sample_rate: sampleRate}));
+            // Enviamos la frecuencia REAL al backend
+            socket.send(JSON.stringify({...sessionMetadata, sample_rate: sr}));
 
-            // 4. Start Capture
             input = audioContext.createMediaStreamSource(stream);
             processor = audioContext.createScriptProcessor(4096, 1, 1);
             
@@ -205,8 +164,10 @@
               if (!isRecording || !socket || socket.readyState !== WebSocket.OPEN) return;
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmData = new Int16Array(inputData.length);
+              
               for (let i = 0; i < inputData.length; i++) {
-                const s = Math.max(-1, Math.min(1, inputData[i]));
+                // EL TRUCO MAGICO: Si está muteado enviamos 0 (silencio) para no cortar la conexión
+                let s = isMuted ? 0 : Math.max(-1, Math.min(1, inputData[i]));
                 pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
               }
               socket.send(pcmData.buffer);
@@ -221,35 +182,23 @@
             
             if (data.type === "user_transcript") {
                 stopVadTimer();
-                if (!lastUserBubble) {
-                    lastUserBubble = addBubble(data.transcript, "user", true);
-                } else {
-                    lastUserBubble.innerText = data.transcript;
-                }
+                if (!lastUserBubble) { lastUserBubble = addBubble(data.transcript, "user", true);
+                } else { lastUserBubble.innerText = data.transcript; }
+                if (data.is_final) { lastUserBubble.classList.remove("interim"); lastUserBubble = null; }
 
-                if (data.is_final) {
-                    lastUserBubble.classList.remove("interim");
-                    lastUserBubble = null;
-                }
             } else if (data.type === "alex_response") {
                 stopVadTimer();
                 lastUserBubble = null;
                 addBubble(data.transcript, "alex");
 
                 if (data.audio) {
-                    if (processor && input) {
-                        input.disconnect(processor);
-                        log("🎤 Mic muted for Alex's response.");
-                    }
-                    
+                    isMuted = true;
+                    log("🎤 Mic muted for Alex response (sending silence).");
                     const bytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
                     const audio = new Audio(URL.createObjectURL(new Blob([bytes], {type: "audio/mp3"})));
-                    
                     audio.onended = () => {
-                        if (input && processor) {
-                            input.connect(processor);
-                            log("🎤 Mic resumed.");
-                        }
+                        isMuted = false;
+                        log("🎤 Mic resumed.");
                     };
                     audio.play();
                 }
@@ -257,59 +206,45 @@
                 stopVadTimer();
                 let timeLeft = data.duration;
                 vadTimerDiv.style.opacity = 1;
-                
                 vadCountdownInterval = setInterval(() => {
                     timeLeft -= 0.1;
-                    if (timeLeft <= 0) {
-                        clearInterval(vadCountdownInterval);
-                        vadTimerDiv.innerText = t.thinking;
-                    } else {
-                        vadTimerDiv.innerText = `Alex will respond in ${timeLeft.toFixed(1)}s...`;
-                    }
+                    if (timeLeft <= 0) { clearInterval(vadCountdownInterval); vadTimerDiv.innerText = t.thinking;
+                    } else { vadTimerDiv.innerText = `Alex will respond in ${timeLeft.toFixed(1)}s...`; }
                 }, 100);
 
             } else if (data.type === "error") {
                 log(`❌ Backend Error: ${data.message}`);
                 cleanup();
+
             } else if (data.type === "session_report") {
+              isSessionFinished = true;
+              isMuted = true;
+              
               const r = data.report;
               const div = document.createElement("div");
               div.style = "background: white; padding: 20px; border-radius: 12px; border: 2px solid #1a73e8; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
               
-              // Crear filas de la tabla con las evaluaciones
               let evalsHtml = r.evaluations.map(ev => 
-                  `<tr>
-                      <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${ev.parameter}</strong></td>
-                      <td style="padding: 8px; border-bottom: 1px solid #eee;">${ev.rating}</td>
-                      <td style="padding: 8px; border-bottom: 1px solid #eee; color: #1e8e3e;"><strong>${ev.points} pts</strong></td>
-                  </tr>`
-              ).join('');
+                  `<tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>${ev.parameter}</strong></td>
+                   <td style="padding: 8px; border-bottom: 1px solid #eee;">${ev.rating}</td>
+                   <td style="padding: 8px; border-bottom: 1px solid #eee; color: #1e8e3e;"><strong>${ev.points} pts</strong></td></tr>`
+              ).join("");
 
               div.innerHTML = `
                   <h3 style="margin-top:0; color: #1a73e8; display: flex; justify-content: space-between;">
-                      <span>📊 Evaluación Final</span>
-                      <span>${r.final_score}%</span>
+                      <span>📊 Evaluación Final</span><span>${r.final_score}%</span>
                   </h3>
                   <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                       <span style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 16px; font-size: 14px;"><strong>Estado:</strong> ${r.status}</span>
                       <span style="background: #e6f4ea; color: #1e8e3e; padding: 4px 10px; border-radius: 16px; font-size: 14px;"><strong>Total:</strong> ${r.actual_points}/${r.max_points} pts</span>
                   </div>
                   <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; margin-bottom: 15px;">
-                      <thead>
-                          <tr style="background: #f8f9fa;">
-                              <th style="padding: 8px;">Parámetro</th>
-                              <th style="padding: 8px;">Calificación</th>
-                              <th style="padding: 8px;">Puntos</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          ${evalsHtml}
-                      </tbody>
+                      <thead><tr style="background: #f8f9fa;"><th style="padding: 8px;">Parámetro</th><th style="padding: 8px;">Calificación</th><th style="padding: 8px;">Puntos</th></tr></thead>
+                      <tbody>${evalsHtml}</tbody>
                   </table>
                   <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 13px;">
                       <strong>Feedback Ejecutivo:</strong><br><em>${r.final_comment}</em>
-                  </div>
-              `;
+                  </div>`;
               chatHistory.appendChild(div);
               chatHistory.scrollTop = chatHistory.scrollHeight;
               cleanup();
@@ -319,15 +254,10 @@
           socket.onclose = () => { if (isRecording) cleanup(); };
           socket.onerror = () => cleanup();
 
-        } catch (err) {
-          log(`❌ Error: ${err.message}`);
-          cleanup();
-        }
+        } catch (err) { log(`❌ Error: ${err.message}`); cleanup(); }
       }
 
       recordBtn.onclick = () => isRecording ? cleanup() : startRecording();
-      
-      // Initial UI setup
       updateUI();
       Streamlit.setComponentReady();
       setInterval(Streamlit.setFrameHeight, 500);
