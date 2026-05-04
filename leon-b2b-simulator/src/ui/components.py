@@ -32,12 +32,12 @@ def get_image_base64(path: str) -> Optional[str]:
         return None
     return None
 
-def render_header(info_text: str = ""):
+def render_header(info_text: str = "", key_prefix: str = ""):
     # Look for the project image in assets
     img_base64 = get_image_base64("assets/project_hero.png")
 
     # Current language from session state
-    lang_choice = st.session_state.get("language_selector", "English")
+    lang_choice = st.session_state.get(f"{key_prefix}language_selector", "English")
     T = UI_TEXTS[lang_choice]
 
     # Container for the Hero Field
@@ -64,7 +64,7 @@ def render_header(info_text: str = ""):
             
         with col_side:
             # Language Selector on top
-            st.selectbox("Select Language", ["English", "Spanish", "Portuguese"], label_visibility="collapsed", key="language_selector")
+            st.selectbox("Select Language", ["English", "Spanish", "Portuguese"], label_visibility="collapsed", key=f"{key_prefix}language_selector")
             
             # --- PERSISTENT MODE SELECTOR ---
             with st.popover(f"{T.get('mode_btn', 'Mode')} ⚙️", use_container_width=True):

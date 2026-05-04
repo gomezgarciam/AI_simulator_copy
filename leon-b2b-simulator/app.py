@@ -56,6 +56,7 @@ from typing import Optional
 from src.rag.loader import load_internal_documents_from_gcs
 from src.rag.chunking import build_chunk_index
 from src.rag.context_builder import build_assistant_context
+from src.services.db_service import save_simulation_to_bq
 
 # =========================================================
 # 1. APP CONFIG
@@ -119,10 +120,38 @@ except:
 # =========================================================
 st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # =========================================================
-# 4. SETUP SCREEN
+# 3.5. BDR AUTHENTICATION (BMS LOGIN)
+# =========================================================
+if not st.session_state.get("bms_id"):
+    render_header(info_text="Welcome to the AI Sales Simulator. Please authenticate.", key_prefix="login_")
+
+    # Crear un espacio centrado y estético para el Login
+    st.write("<br><br>", unsafe_allow_html=True)
+    _, center_col, _ = st.columns([1, 1.5, 1])
+
+    with center_col:
+        st.markdown("<h3 style='text-align: center; color: #1a73e8;'>🔑 BDR Authentication</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #5f6368;'>Please enter your BMS ID to track your performance.</p>", unsafe_allow_html=True)
+
+        with st.container(border=True):
+            bms_input = st.text_input("BMS ID (Employee ID):", placeholder="e.g. 123456", key="login_bms_input")
+
+            if st.button("Access Simulator", use_container_width=True, type="primary"):
+                # Validación básica: que no esté vacío y tenga al menos 3 caracteres
+                if len(bms_input.strip()) < 3:
+                    st.error("Please enter a valid BMS ID.")
+                else:
+                    # Guardar en la sesión y recargar la página
+                    st.session_state.bms_id = bms_input.strip()
+                    st.rerun()
+
+    # st.stop() es clave: evita que Streamlit siga dibujando la pantalla de Setup debajo del login
+    st.stop()
+# =========================================================
+# 5. SETUP SCREEN
 # =========================================================
 if st.session_state.target_company is None:
-    render_header(info_text=T.get("simulator_info", ""))
+    render_header(info_text=T.get("simulator_info", ""), key_prefix="setup_")
 
     st.markdown(
         f"""
@@ -286,7 +315,7 @@ if st.session_state.target_company is None:
 # 5. LIVE MODE OVERRIDE (Sprint 2)
 # =========================================================
 if mode == T["mode_live_title"]:
-    render_header(info_text=T.get("simulator_info", ""))
+    render_header(info_text=T.get("simulator_info", ""), key_prefix="live_")
 
     st.title(f"Live Mode: {st.session_state.target_company}")
 
@@ -294,7 +323,8 @@ if mode == T["mode_live_title"]:
     metadata = {
         "target_company": st.session_state.target_company,
         "role": st.session_state.role,
-        "language": st.session_state.language
+        "language": st.session_state.language,
+        "bms_id": st.session_state.get("bms_id", "UNKNOWN")
     }
 
     render_metric_strip(
@@ -308,7 +338,6 @@ if mode == T["mode_live_title"]:
     live_mic_recorder(metadata=metadata)
 
     st.stop()
-
 # =========================================================
 # 6. ACTIVE SESSION (Assisted Mode)
 # =========================================================
@@ -319,7 +348,7 @@ st.session_state.show_assistant = True
 # =========================================================
 # 6. TOP HEADER
 # =========================================================
-render_header(info_text=T["simulator_info"])
+render_header(info_text=T["simulator_info"], key_prefix="assisted_")
 
 render_metric_strip(
     st.session_state.target_company,
@@ -429,6 +458,21 @@ with left_col:
                         
                         with st.spinner(T.get("evaluating_spinner", "Generating professional evaluation...")):
                             report = evaluate_transcript(format_transcript_from_messages(st.session_state.messages), genai_client, MODEL_ID)
+                        
+                        # --- NUEVO: GUARDAR EN BIGQUERY ---
+                        payload_bq = {
+                            "bms_id": st.session_state.get("bms_id", "UNKNOWN"),
+                            "sim_mode": "Assisted Mode",
+                            "target_company": st.session_state.target_company,
+                            "role": st.session_state.role,
+                            "final_score": report.get("final_score", 0),
+                            "status": report.get("status", ""),
+                            "detailed_evaluation": report.get("evaluations", []),
+                            "transcript": format_transcript_from_messages(st.session_state.messages)
+                        }
+                        # Usamos el Project ID que ya tienes en settings.py
+                        save_simulation_to_bq(GOOGLE_CLOUD_PROJECT, payload_bq)
+                        # ----------------------------------
                         
                         st.divider()
                         st.subheader(f"📊 {T.get('evaluation_results', 'Evaluation Results')}")

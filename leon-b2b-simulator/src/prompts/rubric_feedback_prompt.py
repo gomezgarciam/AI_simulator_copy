@@ -1,7 +1,17 @@
-def create_rubric_feedback_prompt(transcript: str, rubric_json: str) -> str:
+import json
+import os
+
+RUBRIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/rubrics")
+
+def create_rubric_feedback_prompt(transcript: str, rubric_name: str) -> str:
     """
     Creates a prompt for Gemini to evaluate a sales transcript based on a specific rubric.
     """
+    rubric_file_path = os.path.join(RUBRIC_DIR, f"{rubric_name}.json")
+    with open(rubric_file_path, 'r') as f:
+        rubric_config = json.load(f)
+    rubric_json = json.dumps(rubric_config, indent=2)
+
     return f"""
 You are a Senior Sales Quality Assurance Auditor. Your task is to evaluate a BDR (Business Development Representative) sales call transcript based on the provided rubric.
 

@@ -7,7 +7,7 @@ from src.evaluation.scoring_engine import compute_final_score
 
 logger = logging.getLogger("rubric_engine")
 
-def evaluate_transcript(transcript: str, genai_client: Any, model_id: str) -> Dict[str, Any]:
+def evaluate_transcript(transcript: str, genai_client: Any, model_id: str, rubric_name: str) -> Dict[str, Any]:
     """
     Orchestrates the evaluation process:
     1. Loads the rubric.
@@ -16,11 +16,10 @@ def evaluate_transcript(transcript: str, genai_client: Any, model_id: str) -> Di
     """
     try:
         # 1. Load Rubric
-        rubric_config = load_rubric_config()
-        rubric_json_str = json.dumps(rubric_config, indent=2)
+        rubric_config = load_rubric_config(rubric_name)
         
         # 2. Prepare Prompt
-        prompt = create_rubric_feedback_prompt(transcript, rubric_json_str)
+        prompt = create_rubric_feedback_prompt(transcript, rubric_name)
         
         # 3. Call Gemini
         logger.info("Calling Gemini for rubric evaluation...")

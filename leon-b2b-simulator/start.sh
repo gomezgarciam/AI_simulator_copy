@@ -12,6 +12,10 @@ python3 live_mode_backend.py > /tmp/backend.log 2>&1 &
 echo "Starting Streamlit App on port 8501..."
 streamlit run app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true > /tmp/streamlit.log 2>&1 &
 
+# --- NUEVO: Esperar a que los servicios de fondo se inicien ---
+echo "Waiting 5 seconds for backend services to start..."
+sleep 5
+
 # 4. Iniciar Nginx en primer plano
 echo "Starting Nginx Reverse Proxy in foreground..."
 nginx -g 'daemon off;'

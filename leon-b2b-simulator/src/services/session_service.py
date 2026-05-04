@@ -2,6 +2,7 @@ import streamlit as st
 
 
 DEFAULT_SESSION_VALUES = {
+    "bms_id": None,
     "assistant_messages": [],
     "messages": [],
     "input_key": 0,
