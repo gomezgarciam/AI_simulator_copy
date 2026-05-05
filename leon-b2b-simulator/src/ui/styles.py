@@ -88,14 +88,14 @@ GLOBAL_STYLES = """
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
             width: 100%;
         }
 
         .hero-project-image-side {
             max-width: 100%;
             height: auto;
-            max-height: 140px;
+            max-height: 200px;
             object-fit: contain;
             /* Transparent background, only shadow for depth */
             filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08));

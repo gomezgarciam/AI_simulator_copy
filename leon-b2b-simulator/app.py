@@ -123,29 +123,31 @@ st.markdown(GLOBAL_STYLES, unsafe_allow_html=True)
 # 3.5. BDR AUTHENTICATION (BMS LOGIN)
 # =========================================================
 if not st.session_state.get("bms_id"):
-    render_header(info_text="Welcome to the AI Sales Simulator. Please authenticate.", key_prefix="login_")
+    # 1. Leemos el idioma específico del selector de esta pantalla
+    login_lang = st.session_state.get("login_language_selector", "English")
+    T_login = UI_TEXTS.get(login_lang, UI_TEXTS["English"])
 
-    # Crear un espacio centrado y estético para el Login
+    render_header(info_text=T_login.get("login_welcome", ""), key_prefix="login_")
+
     st.write("<br><br>", unsafe_allow_html=True)
     _, center_col, _ = st.columns([1, 1.5, 1])
 
     with center_col:
-        st.markdown("<h3 style='text-align: center; color: #1a73e8;'>🔑 BDR Authentication</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #5f6368;'>Please enter your BMS ID to track your performance.</p>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='text-align: center; color: #1a73e8;'>{T_login.get('login_title', '🔑 BDR Authentication')}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #5f6368;'>{T_login.get('login_desc', '')}</p>", unsafe_allow_html=True)
 
         with st.container(border=True):
-            bms_input = st.text_input("BMS ID (Employee ID):", placeholder="e.g. 123456", key="login_bms_input")
+            bms_input = st.text_input(T_login.get("login_input", ""), placeholder=T_login.get("login_placeholder", ""), key="login_bms_input")
 
-            if st.button("Access Simulator", use_container_width=True, type="primary"):
-                # Validación básica: que no esté vacío y tenga al menos 3 caracteres
+            if st.button(T_login.get("login_btn", "Access Simulator"), use_container_width=True, type="primary"):
                 if len(bms_input.strip()) < 3:
-                    st.error("Please enter a valid BMS ID.")
+                    st.error(T_login.get("login_err", ""))
                 else:
-                    # Guardar en la sesión y recargar la página
                     st.session_state.bms_id = bms_input.strip()
+                    # 2. Sincronizamos el idioma maestro para el resto de la app
+                    st.session_state.language_selector = login_lang
                     st.rerun()
 
-    # st.stop() es clave: evita que Streamlit siga dibujando la pantalla de Setup debajo del login
     st.stop()
 # =========================================================
 # 5. SETUP SCREEN

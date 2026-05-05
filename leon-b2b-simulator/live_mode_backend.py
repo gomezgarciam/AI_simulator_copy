@@ -170,6 +170,22 @@ class SpeechStreamer:
                     
                     # 2. Evaluate and send report
                     report = evaluate_transcript(format_transcript_from_messages(self.session_messages), self.genai_client, MODEL_ID)
+
+                    # --- NUEVO: GUARDAR EN BIGQUERY (Live Mode) ---
+                    payload_bq_live = {
+                        "bms_id": self.metadata.get("bms_id", "UNKNOWN"),
+                        "sim_mode": "Live Mode",
+                        "target_company": self.metadata.get("target_company", "UNKNOWN"),
+                        "role": self.metadata.get("role", "UNKNOWN"),
+                        "final_score": report.get("final_score", 0),
+                        "status": report.get("status", ""),
+                        "detailed_evaluation": report.get("evaluations", []),
+                        "transcript": format_transcript_from_messages(self.session_messages)
+                    }
+                    # Ejecutar la llamada a BigQuery en un thread separado para no bloquear el loop de asyncio
+                    await asyncio.to_thread(save_simulation_to_bq, GOOGLE_CLOUD_PROJECT, payload_bq_live)
+                    # -----------------------------------------------
+
                     await self.safe_send({
                         "type": "session_report",
                         "report": report

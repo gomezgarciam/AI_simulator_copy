@@ -4,6 +4,15 @@ UI_TEXTS = {
         "setup_title": "Roleplay Setup",
         "setup_subtitle": "Configure the buyer persona, account context, and enrichment inputs before launching the roleplay.",
 
+        # Login
+        "login_welcome": "Welcome to the AI Sales Simulator. Please authenticate.",
+        "login_title": "🔑 BDR Authentication",
+        "login_desc": "Please enter your BMS ID to track your performance.",
+        "login_input": "BMS ID (Employee ID):",
+        "login_placeholder": "e.g. 123456",
+        "login_btn": "Access Simulator",
+        "login_err": "Please enter a valid BMS ID.",
+
         "company_q": "Target company:",
         "company_placeholder": "e.g. Uber, Mercado Libre, Nubank",
         "company_required": "Please enter a company name.",
@@ -102,6 +111,15 @@ UI_TEXTS = {
         # Setup
         "setup_title": "Configuración del Roleplay",
         "setup_subtitle": "Configura el buyer persona, el contexto de la cuenta y los insumos antes de iniciar la simulación.",
+
+        # Login
+        "login_welcome": "Bienvenido al Simulador de Ventas con IA. Por favor, identifícate.",
+        "login_title": "🔑 Autenticación de BDR",
+        "login_desc": "Por favor ingresa tu BMS ID para registrar tu rendimiento.",
+        "login_input": "BMS ID (ID de Empleado):",
+        "login_placeholder": "Ej: 123456",
+        "login_btn": "Acceder al Simulador",
+        "login_err": "Por favor ingresa un BMS ID válido.",
 
         "company_q": "Empresa objetivo:",
         "company_placeholder": "Ej: Uber, Mercado Libre, Nubank",
@@ -202,6 +220,15 @@ UI_TEXTS = {
         "setup_title": "Configuração do Roleplay",
         "setup_subtitle": "Configure a persona do comprador, o contexto da conta e os insumos antes de iniciar a simulação.",
 
+        # Login
+        "login_welcome": "Bem-vindo ao Simulador de Vendas com IA. Por favor, autentique-se.",
+        "login_title": "🔑 Autenticação de BDR",
+        "login_desc": "Por favor, insira seu BMS ID para acompanhar seu desempenho.",
+        "login_input": "BMS ID (ID do Funcionário):",
+        "login_placeholder": "Ex: 123456",
+        "login_btn": "Acessar Simulador",
+        "login_err": "Por favor, insira um BMS ID válido.",
+
         "company_q": "Empresa alvo:",
         "company_placeholder": "Ex: Uber, Mercado Libre, Nubank",
         "company_required": "Digite o nome de uma empresa.",
@@ -252,10 +279,10 @@ UI_TEXTS = {
         "assistant_input": "Peça orientação com base na conversa ao vivo e nos materiais FY26",
         "assistant_placeholder": "Ex: Como devo posicionar GCP aqui?",
         "assistant_button": "Perguntar ao Assistant",
-        "assistant_sources": "Fontes usadas:",
-        "assistant_empty_state": "Pergunte sobre posicionamento, discovery, objeções, próximos passos ou plays FY26.",
+        "assistant_sources": "Fuentes usadas:",
+        "assistant_empty_state": "Pergunte sobre posicionamiento, discovery, objeciones, próximos passos ou plays FY26.",
         "assistant_loading": "Pensando...",
-        "assistant_error": "Erro no assistente de vendas:",
+        "assistant_error": "Erro no assistente de ventas:",
         "assistant_connected": "Conhecimento interno FY26 conectado",
 
         # UI Sections
@@ -277,22 +304,22 @@ UI_TEXTS = {
 
         # Assistant UI
         "assistant_info": "O Sales Assistant é baseado em plays FY26, battle cards, pesquisa em PDF enviada e na transcrição do roleplay ao vivo.",
-        "assistant_tip": "Use este painel como seu copiloto ao vivo.",
+        "assistant_tip": "Use este panel como tu copiloto ao vivo.",
 
         # Misc
-        "knowledge_badge_title": "Conhecimento de Vendas FY26",
-        "knowledge_badge_desc": "Conectado a Plays e Battle Cards oficiais",
+        "knowledge_badge_title": "Conhecimento de Vendas Ano Fiscal 2026",
+        "knowledge_badge_desc": "Conectado a jogadas oficiais e cartas de batalha.",
         "no_docs_loaded": "Nenhum documento interno FY26 foi carregado do GCS.",
-        "session_caption": "Simulação ao vivo com Alex",
-        "simulator_info": "Este simulador recria conversas de vendas enterprise e oferece orientação em tempo real.",
+        "session_caption": "Simulación ao vivo con Alex",
+        "simulator_info": "Este simulador recria conversas de vendas empresariais e oferece orientação em tempo real..",
         
-        "hero_subtitle": "Um framework de treinamento profissional projetado para aperfeiçoar discovery B2B de alto nível por meio de simulação realista do comportamento dos compradores. O sucesso neste ambiente desafiador é alcançado apenas ao apresentar estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócio específico da empresa—integrando o Conhecimento de Vendas oficial do Google FY26 Campaign Plays.",
-        "hero_badges": ["Multilíngue", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
+        "hero_subtitle": "Uma estrutura de treinamento profissional projetada para aprimorar a descoberta B2B de alto nível por meio da simulação realista do comportamento do comprador. O sucesso nesse ambiente desafiador só é alcançado apresentando estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócios específico da empresa — integrando o conhecimento de vendas das Campanhas Oficiais do Google para o Ano Fiscal de 2026.",
+        "hero_badges": ["Multilíngue", "Habilitado por Voz", "Conhecimento de peças do ano fiscal de 2026", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
 
         "mode_btn": "Modo",
         "mode_classic_title": "Assisted Mode",
-        "mode_classic_desc": "Simulação assistida com chat de orientação ao lado para coaching ao vivo.",
-        "mode_live_title": "Modo Live",
-        "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo com Alex.",
+        "mode_classic_desc": "Simulación asistida con chat de orientación al lado para coaching ao vivo.",
+        "mode_live_title": "Modo ao vivo",
+        "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo con Alex.",
     }
 }
