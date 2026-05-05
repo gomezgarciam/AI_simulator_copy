@@ -1,11 +1,13 @@
 import json
 import os
 
-def load_rubric_config(file_path=None):
-    if file_path is None:
-        # Default local path
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        file_path = os.path.join(base_dir, "config", "rubrics", "bdr_qa_rubric_v1.json")
+RUBRIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../config/rubrics")
+
+def load_rubric_config(rubric_name: str) -> dict:
+    """
+    Loads the rubric configuration from a specified JSON file.
+    """
+    file_path = os.path.join(RUBRIC_DIR, f"{rubric_name}.json")
     
     with open(file_path, 'r') as f:
         return json.load(f)

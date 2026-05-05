@@ -16,6 +16,8 @@ from src.services.speech_service import get_speech_clients, synthesize_speech
 from src.services.genai_service import get_genai_client
 from src.engines.roleplay_engine import get_or_create_roleplay_session, send_roleplay_message
 from src.evaluation.rubric_engine import evaluate_transcript, format_transcript_from_messages
+from src.services.db_service import save_simulation_to_bq
+from src.config.settings import GOOGLE_CLOUD_PROJECT
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger("live_backend")
