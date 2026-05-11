@@ -225,7 +225,9 @@ class SpeechStreamer:
 
         except Exception as e:
             logger.error(f"STT Pipeline Error: {e}")
-            asyncio.run_coroutine_threadsafe(self.safe_send({"type": "error", "message": f"STT error: {str(e)}"}), self.loop)
+            # Filtramos los errores de silencio de Google STT para no reiniciar la pantalla
+            if "Timeout" not in str(e) and "400" not in str(e) and "Long duration" not in str(e):
+                asyncio.run_coroutine_threadsafe(self.safe_send({"type": "error", "message": f"STT error: {str(e)}"}), self.loop)
         finally:
             self.stt_running = False
 
