@@ -205,23 +205,39 @@ if current_mode == T.get("mode_live_title", "Live Mode"):
     # 2. Si el componente devuelve el reporte, dibujamos la tabla de Streamlit
     if component_output and isinstance(component_output, dict) and component_output.get("type") == "session_report":
         report = component_output.get("report", {})
+        lang = SessionManager.get_language()
         
+        # Diccionario dinámico de traducciones según el idioma seleccionado
+        if lang == "Spanish":
+            eval_title, lbl_score, lbl_status, lbl_points = "Evaluación Final", "Puntaje", "Estado", "Puntos"
+            table_title, exec_feedback = "### 📝 Detalle de Evaluación MEDPICC", "Feedback Ejecutivo:"
+            col_map = {"category": "Categoría", "parameter": "Parámetro", "rating": "Calificación", "points": "Puntos", "evidence": "Evidencia", "improvement_tip": "Tip de Mejora"}
+        elif lang == "Portuguese":
+            eval_title, lbl_score, lbl_status, lbl_points = "Avaliação Final", "Pontuação", "Status", "Pontos"
+            table_title, exec_feedback = "### 📝 Detalhes da Avaliação MEDPICC", "Feedback Executivo:"
+            col_map = {"category": "Categoria", "parameter": "Parâmetro", "rating": "Classificação", "points": "Pontos", "evidence": "Evidência", "improvement_tip": "Dica de Melhoria"}
+        else:
+            eval_title, lbl_score, lbl_status, lbl_points = "Final Evaluation", "Score", "Status", "Points"
+            table_title, exec_feedback = "### 📝 MEDPICC Evaluation Details", "Executive Feedback:"
+            col_map = {"category": "Category", "parameter": "Parameter", "rating": "Rating", "points": "Points", "evidence": "Evidence", "improvement_tip": "Improvement Tip"}
+
         st.divider()
-        st.subheader(f"📊 {T.get('evaluation_results', 'Evaluación Final')}")
+        st.subheader(f"📊 {eval_title}")
         c1, c2, c3 = st.columns(3)
-        c1.metric(T.get("final_score_label", "Score"), f"{report.get('final_score', 0)}%")
-        c2.metric(T.get("status_label", "Estado"), report.get("status", ""))
-        c3.metric(T.get("points_label", "Puntos"), f"{report.get('actual_points', 0)} / {report.get('max_points', 0)}")
+        c1.metric(lbl_score, f"{report.get('final_score', 0)}%")
+        c2.metric(lbl_status, report.get("status", ""))
+        c3.metric(lbl_points, f"{report.get('actual_points', 0)} / {report.get('max_points', 0)}")
 
         import pandas as pd
         df_evals = pd.DataFrame(report.get("evaluations", []))
-        st.markdown("### 📝 Detalle de Evaluación MEDPICC")
-        st.dataframe(
-            df_evals[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]],
-            hide_index=True,
-            use_container_width=True
-        )
-        st.info(f"**Feedback Ejecutivo:** {report.get('final_comment', '')}")
+        
+        st.markdown(table_title)
+        
+        # Renombramos las columnas usando nuestro diccionario antes de mostrarla
+        df_display = df_evals[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]].rename(columns=col_map)
+        
+        st.dataframe(df_display, hide_index=True, use_container_width=True)
+        st.info(f"**{exec_feedback}** {report.get('final_comment', '')}")
         st.balloons()
     
     # CRÍTICO: Detenemos la ejecución aquí para que no dibuje el Assisted Mode debajo
