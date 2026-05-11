@@ -13,5 +13,4 @@ google-cloud-bigquery==3.13.0
 pydantic-settings
 ruff
 tenacity
-pydantic-settings
 
