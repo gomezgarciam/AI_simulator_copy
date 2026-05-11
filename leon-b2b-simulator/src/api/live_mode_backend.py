@@ -37,9 +37,6 @@ LANGUAGE_MAPPING = {
 }
 
 class SpeechStreamer:
-    """
-    Handles real-time STT streaming and interaction with Gemini.
-    """
     def __init__(self, language: str, metadata: Dict[str, Any], websocket: WebSocket, loop: asyncio.AbstractEventLoop):
         self.language = language
         self.language_code = LANGUAGE_MAPPING.get(language, "en-US")
@@ -63,7 +60,6 @@ class SpeechStreamer:
         self.metadata = metadata
         self.session_messages = []
 
-        # --- SILENCE DETECTION ---
         self.silence_timer: Optional[threading.Timer] = None
         self.last_transcript = ""
         self.silence_threshold = 2.0
@@ -122,7 +118,9 @@ class SpeechStreamer:
             logger.info(f"🤖 Processing user input: '{user_text}'")
             self.session_messages.append({"role": "user", "content": user_text})
 
-            stop_phrase = "FINISH_CALL"
+            user_stop_phrase = self.metadata.get("stop_phrase", "Stop simulation")
+            internal_stop_phrase = "FINISH_CALL"
+
             self.chat_session = get_or_create_roleplay_session(
                 existing_chat_session=self.chat_session,
                 genai_client=self.genai_client,
@@ -130,7 +128,7 @@ class SpeechStreamer:
                 target_company=self.metadata.get("target_company", "Google"),
                 role=self.metadata.get("role", "CTO"),
                 language=self.language,
-                stop_phrase=stop_phrase
+                stop_phrase=user_stop_phrase
             )
             
             response_ai, _ = send_roleplay_message(
@@ -143,8 +141,8 @@ class SpeechStreamer:
                 ai_text = response_ai.text
                 self.session_messages.append({"role": "assistant", "content": ai_text})
 
-                if stop_phrase in ai_text:
-                    clean_ai_text = ai_text.replace(stop_phrase, "").strip()
+                if internal_stop_phrase in ai_text:
+                    clean_ai_text = ai_text.replace(internal_stop_phrase, "").strip()
                     audio_content = synthesize_speech(self.tts_client, clean_ai_text, self.language)
                     await self.safe_send({
                         "type": "alex_response",
@@ -152,7 +150,13 @@ class SpeechStreamer:
                         "audio": base64.b64encode(audio_content).decode("utf-8")
                     })
                     
-                    report = evaluate_transcript(format_transcript_from_messages(self.session_messages), self.genai_client, settings.MODEL_ID)
+                                        # Añadimos "bdr_qa_rubric_v1" al final
+                    report = evaluate_transcript(
+                        format_transcript_from_messages(self.session_messages), 
+                        self.genai_client, 
+                        settings.MODEL_ID,
+                        "bdr_qa_rubric_v1"
+                    )
                     payload = {
                         "bms_id": self.metadata.get("bms_id", "UNKNOWN"),
                         "sim_mode": "Live Mode",

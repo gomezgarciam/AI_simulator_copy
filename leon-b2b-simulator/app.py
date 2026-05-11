@@ -15,6 +15,7 @@ from src.ui.components import (
     section_title,
     render_metric_strip,
     render_glass_tip,
+    live_mic_recorder
 )
 
 from src.services.pdf_service import summarize_text, extract_text_from_uploaded_pdf
@@ -95,14 +96,29 @@ T = SessionManager.get_texts()
 if st.session_state.get(SessionManager.TARGET_COMPANY) is None:
     render_header(info_text=T.get("simulator_info", ""), key_prefix="setup_")
     
+    st.markdown(
+        f"""
+        <div class="language-bar">
+            <div class="language-bar-title">{T.get('presentation_language', 'Presentation Language')}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     left_col, center_col, right_col = st.columns([1.05, 1.15, 1.0], gap="large")
     
     with left_col:
         section_title(T["setup_title"], T["setup_subtitle"])
-        company = st.text_input(T["company_q"], key="setup_company").strip()
         
+        st.markdown(f"<div class='section-kicker'>{T.get('profile_kicker', 'Profile')}</div>", unsafe_allow_html=True)
+        company = st.text_input(T["company_q"], placeholder=T.get("company_placeholder", ""), key="setup_company").strip()
+        
+        st.markdown(f"<div class='section-kicker'>{T.get('scenario_kicker', 'Scenario')}</div>", unsafe_allow_html=True)
         role_choice = st.selectbox(T["role_q"], ["CTO", "CEO", "CFO", T["other_role_option"]], key="setup_role_sel")
         role = st.text_input(T["custom_role_q"], key="setup_custom_role").strip() if role_choice == T["other_role_option"] else role_choice
+        
+        st.markdown(f"<div class='section-kicker'>{T.get('additional_context', 'Additional Context')}</div>", unsafe_allow_html=True)
+        st.info(T.get("pdf_info", "If you upload a PDF, Alex will use it to better understand the company's context."))
         
         uploaded_file = st.file_uploader(T["pdf_uploader_label"], type=["pdf"], key="setup_pdf")
         company_url = st.text_input(T["url_input_label"], key="setup_url")
@@ -118,13 +134,98 @@ if st.session_state.get(SessionManager.TARGET_COMPANY) is None:
     
     with center_col:
         section_title(T["scenario_preview"], T["scenario_subtitle"])
+        
+        # --- MODE EXPLANATIONS RESTAURADO ---
+        st.markdown(
+            f"""
+            <div style="background: rgba(26, 115, 232, 0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(26, 115, 232, 0.2); margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; color: var(--google-blue); margin-bottom: 0.5rem; font-size: 0.9rem;">{T.get('mode_classic_title', 'Assisted Mode')}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{T.get('mode_classic_desc', '')}</div>
+                <div style="margin-top: 1rem; font-weight: 600; color: #15803d; margin-bottom: 0.5rem; font-size: 0.9rem;">{T.get('mode_live_title', 'Live Mode')}</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{T.get('mode_live_desc', '')}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         render_metric_strip(company if company else "-", role if role else "-", SessionManager.get_language(), T)
 
     with right_col:
-        section_title(T["assistant_title"], T["assistant_subtitle"])
-        if not internal_docs: st.warning(T["no_docs_loaded"])
+        section_title(T["assistant_title"], T["assistant_subtitle"], T.get("assistant_info", ""))
+        
+        # --- ASSISTANT BADGE RESTAURADO ---
+        st.markdown(
+            f"""
+            <div class="assistant-badge">
+                <div class="assistant-badge-title">{T.get('knowledge_badge_title', 'FY26 Sales Knowledge')}</div>
+                <div class="assistant-badge-desc">{T.get('knowledge_badge_desc', '')}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if not internal_docs: 
+            st.warning(T["no_docs_loaded"])
+        else:
+            st.caption(T.get("assistant_connected", "Internal FY26 knowledge connected"))
+            
         render_glass_tip(T["assistant_tip"])
+        
     st.stop()
+
+# =========================================================
+# 3.5. LIVE MODE OVERRIDE
+# =========================================================
+current_mode = st.session_state.get(SessionManager.APP_MODE, T.get("mode_classic_title", "Assisted Mode"))
+
+if current_mode == T.get("mode_live_title", "Live Mode"):
+    render_header(info_text=T.get("simulator_info", ""), key_prefix="live_")
+    st.title(f"Live Mode: {st.session_state.get(SessionManager.TARGET_COMPANY, '')}")
+    
+    metadata = {
+        "target_company": st.session_state.get(SessionManager.TARGET_COMPANY, ""),
+        "role": st.session_state.get(SessionManager.ROLE, ""),
+        "language": SessionManager.get_language(),
+        "bms_id": SessionManager.get_bms_id() or "UNKNOWN",
+        "stop_phrase": T.get("stop_phrase", "Stop simulation")
+    }
+    
+    render_metric_strip(metadata["target_company"], metadata["role"], metadata["language"], T=T)
+
+    _, top_actions_right = st.columns([6, 1.2])
+    with top_actions_right:
+        if st.button(T.get("reset_btn", "Reset Session"), use_container_width=True, key="live_reset"):
+            SessionManager.clear()
+            st.rerun()
+
+    # 1. Llamamos al componente React del micrófono
+    from src.ui.components import live_mic_recorder
+    component_output = live_mic_recorder(metadata=metadata)
+    
+    # 2. Si el componente devuelve el reporte, dibujamos la tabla de Streamlit
+    if component_output and isinstance(component_output, dict) and component_output.get("type") == "session_report":
+        report = component_output.get("report", {})
+        
+        st.divider()
+        st.subheader(f"📊 {T.get('evaluation_results', 'Evaluación Final')}")
+        c1, c2, c3 = st.columns(3)
+        c1.metric(T.get("final_score_label", "Score"), f"{report.get('final_score', 0)}%")
+        c2.metric(T.get("status_label", "Estado"), report.get("status", ""))
+        c3.metric(T.get("points_label", "Puntos"), f"{report.get('actual_points', 0)} / {report.get('max_points', 0)}")
+
+        import pandas as pd
+        df_evals = pd.DataFrame(report.get("evaluations", []))
+        st.markdown("### 📝 Detalle de Evaluación MEDPICC")
+        st.dataframe(
+            df_evals[["category", "parameter", "rating", "points", "evidence", "improvement_tip"]],
+            hide_index=True,
+            use_container_width=True
+        )
+        st.info(f"**Feedback Ejecutivo:** {report.get('final_comment', '')}")
+        st.balloons()
+    
+    # CRÍTICO: Detenemos la ejecución aquí para que no dibuje el Assisted Mode debajo
+    st.stop() 
 
 # =========================================================
 # 4. SIMULATION SCREEN (Assisted Mode)

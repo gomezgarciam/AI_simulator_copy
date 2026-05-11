@@ -88,7 +88,13 @@ class SimulationCoordinator:
         Runs the final MEDPICC evaluation and saves results to BigQuery.
         """
         transcript = format_transcript_from_messages(messages)
-        report = evaluate_transcript(transcript, self.genai_client, settings.MODEL_ID)
+        # Añadimos "bdr_qa_rubric_v1" al final
+        report = evaluate_transcript(
+            transcript, 
+            self.genai_client, 
+            settings.MODEL_ID,
+            "bdr_qa_rubric_v1"
+        )
         
         # Prepare payload for BQ
         payload = {
