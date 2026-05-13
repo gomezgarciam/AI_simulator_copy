@@ -9,7 +9,7 @@ class SessionManager:
 
     # Key constants
     BMS_ID = "bms_id"
-    LANGUAGE = "language_selector"
+    LANGUAGE = "session_language"
     APP_MODE = "app_mode"
     TARGET_COMPANY = "target_company"
     ROLE = "role"

@@ -211,7 +211,7 @@ UI_TEXTS = {
         "mode_btn": "Modo",
         "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Simulación asistida con un chat de asesoramiento en tiempo real.",
-        "mode_live_title": "Modo Live",
+        "mode_live_title": "Modo en Vivo",
         "mode_live_desc": "Interfaz sin distracciones centrada puramente en la conversación en vivo con Alex.",
     },
 
@@ -319,7 +319,6 @@ UI_TEXTS = {
         "mode_btn": "Modo",
         "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Simulación asistida con chat de orientación al lado para coaching ao vivo.",
-        "mode_live_title": "Modo ao vivo",
-        "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo con Alex.",
-    }
+        "mode_live_title": "Modo ao Vivo",
+        "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo con Alex.",    }
 }
