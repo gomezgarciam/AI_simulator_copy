@@ -8,13 +8,20 @@ This application is a sophisticated B2B sales roleplaying simulator designed to 
 1.  **Alex (The Prospect):** An AI persona (CTO, CFO, CEO, etc.) that the user interacts with via voice. Alex is designed to be a realistic, skeptical enterprise stakeholder.
 2.  **Sales Assistant (The Coach):** A separate RAG-powered agent available during the simulation to provide real-time coaching, objection handling, or internal product knowledge.
 
+### New: Performance Tracking (Sprint 3)
+The simulator now includes a performance tracking system.
+1.  **Authentication:** BDRs log in using a "soft auth" system with their BMS ID (employee ID).
+2.  **Database Persistence:** At the end of a session in "Assisted Mode", the full simulation data (transcript, score, detailed rubric) is saved to a Google BigQuery database.
+3.  **Performance History:** This enables managers and QA leaders to track BDR progress, analyze trends, and identify coaching opportunities.
+
 ### Workflow
-1.  **Voice Input:** User records their sales pitch via Streamlit's audio input.
-2.  **Transcription:** Handled by Google Cloud Speech-to-Text.
-3.  **Roleplay Engine:** Transcribed text is processed by `gemini-2.5-flash`. Alex responds based on detailed role-specific guidance.
-4.  **RAG Knowledge:** The Sales Assistant retrieves context from internal documents (FY26 Plays, battlecards) stored in Google Cloud Storage.
-5.  **Text-to-Speech:** Alex's responses are converted back to audio using Google Cloud Text-to-Speech.
-6.  **Feedback:** At the end of the session, a structured JSON-based feedback table is generated.
+1.  **Authentication:** The user enters their BMS ID.
+2.  **Voice Input:** User records their sales pitch via Streamlit's audio input.
+3.  **Transcription:** Handled by Google Cloud Speech-to-Text.
+4.  **Roleplay Engine:** Transcribed text is processed by `gemini-2.5-flash`. Alex responds based on detailed role-specific guidance.
+5.  **RAG Knowledge:** The Sales Assistant retrieves context from internal documents (FY26 Plays, battlecards) stored in Google Cloud Storage.
+6.  **Text-to-Speech:** Alex's responses are converted back to audio using Google Cloud Text-to-Speech.
+7.  **Feedback & Storage:** At the end of the session, a structured JSON-based feedback table is generated and, in Assisted Mode, the entire session payload is saved to BigQuery.
 
 The application is fully multilingual, with deep support for English, Spanish, and Portuguese.
 
@@ -22,11 +29,13 @@ The application is fully multilingual, with deep support for English, Spanish, a
 
 -   **Language:** Python 3.9+
 -   **Frontend:** Streamlit (with custom Glassmorphism CSS styles).
+-   **Database:** Google BigQuery for storing simulation results.
 -   **AI Services (Google GenAI SDK & Cloud APIs):**
     -   `google-genai`: Powers the Gemini LLM for roleplay and assistant logic.
     -   `google-cloud-speech`: High-accuracy audio transcription.
     -   `google-cloud-texttospeech`: Natural voice synthesis.
     -   `google-cloud-storage`: Used for RAG knowledge base retrieval.
+    -   `google-cloud-bigquery`: Python client for database interaction.
 -   **Data & Document Processing:**
     -   `rag`: Custom implementation for document loading (`pypdf`), chunking, and index-based retrieval.
     -   `pydub`: Audio format conversion (requires `ffmpeg`).
@@ -37,7 +46,9 @@ The application is fully multilingual, with deep support for English, Spanish, a
 -   **Platform:** Google Cloud Platform (Project: `b2b-agent-485013`, Region: `us-central1`).
 -   **Deployment:** Google Cloud Run (Service: `simulator-b2b`).
 -   **Containerization:** Docker (`python:3.9-slim` base, includes `ffmpeg` installation).
--   **Storage:** GCS Bucket `bdr-simulator-internal-docs` for internal coaching material.
+-   **Storage:** 
+    -   **Documents:** GCS Bucket `bdr-simulator-internal-docs` for internal coaching material.
+    -   **Simulation Data:** BigQuery table `b2b-agent-485013.simulator_data.evaluations`.
 
 ## 4. Project Structure (Modular src/)
 
@@ -61,10 +72,11 @@ The application is fully multilingual, with deep support for English, Spanish, a
     │   ├── chunking.py     # Text splitting and indexing.
     │   └── context_builder.py # Context assembly for LLM prompts.
     ├── services/
-    │   ├── audio_service.py # Pydub utilities.
-    │   ├── genai_service.py # Gemini client initialization.
-    │   ├── speech_service.py # STT and TTS wrappers.
-    │   └── pdf_service.py   # PDF text extraction and summarization.
+    │   ├── audio_service.py    # Pydub utilities.
+    │   ├── db_service.py       # Saves simulation results to BigQuery.
+    │   ├── genai_service.py    # Gemini client initialization.
+    │   ├── speech_service.py   # STT and TTS wrappers.
+    │   └── pdf_service.py      # PDF text extraction and summarization.
     ├── ui/
     │   ├── components.py   # Reusable Streamlit UI elements.
     │   ├── styles.py       # Glassmorphism and layout CSS.

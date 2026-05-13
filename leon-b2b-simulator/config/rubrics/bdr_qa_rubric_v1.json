@@ -126,7 +126,7 @@
       "category_weight": 0.6,
       "parameter": "Champion",
       "type": "scored",
-      "rubric_weight": 0.06,
+      "rubric_weight": 0.09,
       "input": "Did the BDR identify a Champion, someone who will advocate for Google's solution internally, and confirm their willingness to do so?",
       "allowed_ratings": [
         "Meets Expectations",
@@ -141,23 +141,8 @@
       "category_weight": 0.6,
       "parameter": "Competition",
       "type": "scored",
-      "rubric_weight": 0.06,
+      "rubric_weight": 0.09,
       "input": "Did the BDR inquire about competing solutions being considered and understand their strengths and weaknesses from the customer's perspective?",
-      "allowed_ratings": [
-        "Meets Expectations",
-        "Partially Meets Expectations",
-        "Needs Improvement",
-        "N/A"
-      ]
-    },
-    {
-      "id": "paper_process",
-      "category": "Business Critical",
-      "category_weight": 0.6,
-      "parameter": "Paper Process",
-      "type": "scored",
-      "rubric_weight": 0.06,
-      "input": "Did the BDR clarify the customer's procurement process, including timelines, legal review, and required approvals?",
       "allowed_ratings": [
         "Meets Expectations",
         "Partially Meets Expectations",

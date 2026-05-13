@@ -1,9 +1,0 @@
-
-  You can now view your Streamlit app in your browser.
-
-  Local URL: http://localhost:8501
-  Network URL: http://10.88.0.4:8501
-  External URL: http://34.173.247.223:8501
-
-could not convert string to float: b'0.00-11343044' : FloatObject (b'0.00-11343044') invalid; use 0.0 instead
-could not convert string to float: b'0.00-11343044' : FloatObject (b'0.00-11343044') invalid; use 0.0 instead

@@ -1,10 +1,8 @@
 import io
-from typing import Optional
-
+from typing import Optional, Any
 from pydub import AudioSegment
 
-
-def load_audiosegment_from_streamlit_audio(audio_file) -> Optional[AudioSegment]:
+def load_audiosegment_from_streamlit_audio(audio_file: Any) -> Optional[AudioSegment]:
     """
     Safely load audio returned by st.audio_input across environments.
     Avoids pydub/ffprobe JSON decode errors by reading bytes explicitly
@@ -17,16 +15,17 @@ def load_audiosegment_from_streamlit_audio(audio_file) -> Optional[AudioSegment]
         if hasattr(audio_file, "seek"):
             audio_file.seek(0)
         raw_bytes = audio_file.read() if hasattr(audio_file, "read") else None
-    except Exception:
+    except Exception as e:
+        print(f"Error reading audio buffer: {e}")
         raw_bytes = None
 
     if not raw_bytes:
         return None
 
-    mime_type = getattr(audio_file, "type", "") or ""
-    name = getattr(audio_file, "name", "") or ""
+    mime_type: str = getattr(audio_file, "type", "") or ""
+    name: str = getattr(audio_file, "name", "") or ""
 
-    fmt = None
+    fmt: Optional[str] = None
     if "webm" in mime_type or name.endswith(".webm"):
         fmt = "webm"
     elif "wav" in mime_type or name.endswith(".wav"):
@@ -40,9 +39,13 @@ def load_audiosegment_from_streamlit_audio(audio_file) -> Optional[AudioSegment]
 
     audio_buffer = io.BytesIO(raw_bytes)
 
-    if fmt:
-        seg = AudioSegment.from_file(audio_buffer, format=fmt)
-    else:
-        seg = AudioSegment.from_file(audio_buffer)
-
-    return seg.set_channels(1).set_frame_rate(44100)
+    try:
+        if fmt:
+            seg = AudioSegment.from_file(audio_buffer, format=fmt)
+        else:
+            seg = AudioSegment.from_file(audio_buffer)
+        
+        return seg.set_channels(1).set_frame_rate(44100)
+    except Exception as e:
+        print(f"Error converting audio to AudioSegment: {e}")
+        return None

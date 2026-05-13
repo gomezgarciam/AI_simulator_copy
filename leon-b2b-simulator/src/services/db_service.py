@@ -1,41 +1,61 @@
 from google.cloud import bigquery
 import json
 import datetime
+from typing import Dict, Any, List
+from pydantic import BaseModel, Field
+from src.config.settings import settings
+from src.utils.logger import logger
+from src.utils.exceptions import DatabaseError
 
-def save_simulation_to_bq(project_id: str, payload: dict):
+class SimulationResult(BaseModel):
     """
-    Toma los resultados de la simulación y los guarda en BigQuery.
-    Está diseñado para no romper la aplicación si la base de datos falla.
+    Schema validation for simulation results.
+    """
+    bms_id: str = Field(default="UNKNOWN")
+    sim_mode: str = Field(default="Unknown")
+    target_company: str = Field(default="")
+    role: str = Field(default="")
+    final_score: float = Field(default=0.0)
+    status: str = Field(default="")
+    detailed_evaluation: List[Dict[str, Any]] = Field(default_factory=list)
+    transcript: str = Field(default="")
+    timestamp: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+def save_simulation_to_bq(payload: Dict[str, Any]) -> bool:
+    """
+    Saves simulation results to BigQuery with logging and validation.
     """
     try:
-        # 1. Inicializar el cliente de BigQuery
-        client = bigquery.Client(project=project_id)
+        # Validate
+        result = SimulationResult(**payload)
         
-        # 2. Definir el destino exacto (Proyecto.Dataset.Tabla)
-        table_id = f"{project_id}.simulator_data.evaluations"
+        client = bigquery.Client(project=settings.GOOGLE_CLOUD_PROJECT)
+        table_id = f"{settings.GOOGLE_CLOUD_PROJECT}.{settings.BIGQUERY_DATASET}.{settings.BIGQUERY_TABLE}"
 
-        # 3. Formatear la fila asegurando que coincida con nuestro esquema
         row_to_insert = [
             {
-                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "bms_id": payload.get("bms_id", "UNKNOWN"),
-                "sim_mode": payload.get("sim_mode", "Unknown"),
-                "target_company": payload.get("target_company", ""),
-                "role": payload.get("role", ""),
-                "final_score": float(payload.get("final_score", 0.0)),
-                "status": payload.get("status", ""),
-                "detailed_evaluation": json.dumps(payload.get("detailed_evaluation", [])),
-                "transcript": payload.get("transcript", "")
+                "timestamp": result.timestamp.isoformat(),
+                "bms_id": result.bms_id,
+                "sim_mode": result.sim_mode,
+                "target_company": result.target_company,
+                "role": result.role,
+                "final_score": result.final_score,
+                "status": result.status,
+                "detailed_evaluation": json.dumps(result.detailed_evaluation),
+                "transcript": result.transcript
             }
         ]
 
-        # 4. Insertar los datos
         errors = client.insert_rows_json(table_id, row_to_insert)
         
         if not errors:
-            print(f"✅ [BigQuery] Evaluación de {payload.get('bms_id')} guardada exitosamente.")
+            logger.info(f"Successfully saved simulation for BMS ID: {result.bms_id}")
+            return True
         else:
-            print(f"❌ [BigQuery] Errores al insertar: {errors}")
+            logger.error(f"BigQuery insertion errors: {errors}")
+            return False
             
     except Exception as e:
-        print(f"❌ [BigQuery] Error crítico de conexión: {e}")
+        logger.error(f"Critical error saving to BigQuery: {e}")
+        # We don't raise here to avoid crashing the main app flow
+        return False

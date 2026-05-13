@@ -115,3 +115,4 @@ dmypy.json
 .pyre/
 streamlit.log
 ../.venv/
+streamlit.log

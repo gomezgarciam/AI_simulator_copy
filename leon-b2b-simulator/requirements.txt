@@ -10,3 +10,7 @@ fastapi
 uvicorn[standard]
 python-dotenv
 google-cloud-bigquery==3.13.0
+pydantic-settings
+ruff
+tenacity
+
