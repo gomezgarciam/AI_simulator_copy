@@ -49,6 +49,11 @@ UI_TEXTS = {
         # Feedback
         "feedback_intro": "Simulation finished. Analysis:",
         "debug_label": "🎙️ Listen to your last recording",
+        "evaluating_spinner": "Running final evaluation...",
+        "evaluation_results": "Evaluation Results",
+        "final_score_label": "Final Score",
+        "status_label": "Status",
+        "points_label": "Points",
 
         # PDF
         "pdf_uploader_label": "Optional: Upload company research (PDF)",
@@ -96,10 +101,10 @@ UI_TEXTS = {
         "no_docs_loaded": "No FY26 internal documents were loaded from GCS.",
         "session_caption": "Live simulation with Alex",
         "simulator_info": "This simulator recreates enterprise sales conversations and provides real-time guidance.",
-        
+
         "hero_subtitle": "A professional training framework engineered to sharpen high-stakes B2B discovery through realistic buyer behavioral simulation. Success in this challenging environment is achieved only by strategically presenting at least three Google services, each tailored to the company's specific business context—integrating official Google FY26 Campaign Plays Sales Knowledge.",
         "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"],
-        
+
         "mode_btn": "Mode",
         "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Assisted simulation with a side-by-side chat assistant for live coaching.",
@@ -157,6 +162,11 @@ UI_TEXTS = {
         # Feedback
         "feedback_intro": "Simulación finalizada. Análisis:",
         "debug_label": "🎙️ Escucha tu última grabación",
+        "evaluating_spinner": "Ejecutando evaluación final...",
+        "evaluation_results": "Resultados de la Evaluación",
+        "final_score_label": "Puntuación Final",
+        "status_label": "Estado",
+        "points_label": "Puntos",
 
         # PDF
         "pdf_uploader_label": "Opcional: Sube investigación de la empresa (PDF)",
@@ -204,7 +214,7 @@ UI_TEXTS = {
         "no_docs_loaded": "No se cargaron documentos internos FY26 desde GCS.",
         "session_caption": "Simulación en vivo con Alex",
         "simulator_info": "Este simulador recrea conversaciones de ventas enterprise y ofrece guía en tiempo real.",
-        
+
         "hero_subtitle": "Un marco de entrenamiento profesional diseñado para perfeccionar discovery B2B de alto nivel mediante simulación realista del comportamiento de compradores. El éxito en este entorno desafiante se logra solo al presentar estratégicamente al menos tres servicios de Google, cada uno adaptado al contexto de negocio específico de la empresa—integrando el Conocimiento de Ventas oficial de Google FY26 Campaign Plays.",
         "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"],
 
@@ -265,6 +275,11 @@ UI_TEXTS = {
         # Feedback
         "feedback_intro": "Simulação finalizada. Análise:",
         "debug_label": "🎙️ Ouça sua última gravação",
+        "evaluating_spinner": "Executando avaliação final...",
+        "evaluation_results": "Resultados da Avaliação",
+        "final_score_label": "Pontuação Final",
+        "status_label": "Status",
+        "points_label": "Pontos",
 
         # PDF
         "pdf_uploader_label": "Opcional: Envie pesquisa da empresa (PDF)",
@@ -312,7 +327,7 @@ UI_TEXTS = {
         "no_docs_loaded": "Nenhum documento interno FY26 foi carregado do GCS.",
         "session_caption": "Simulación ao vivo con Alex",
         "simulator_info": "Este simulador recria conversas de vendas empresariais e oferece orientação em tempo real..",
-        
+
         "hero_subtitle": "Uma estrutura de treinamento profissional projetada para aprimorar a descoberta B2B de alto nível por meio da simulação realista do comportamento do comprador. O sucesso nesse ambiente desafiador só é alcançado apresentando estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócios específico da empresa — integrando o conhecimento de vendas das Campanhas Oficiais do Google para o Ano Fiscal de 2026.",
         "hero_badges": ["Multilíngue", "Habilitado por Voz", "Conhecimento de peças do ano fiscal de 2026", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
 
