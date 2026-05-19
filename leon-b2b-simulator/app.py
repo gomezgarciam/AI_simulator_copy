@@ -74,16 +74,33 @@ if not SessionManager.get_bms_id():
     
     render_header(info_text=T_login.get("login_welcome", ""), key_prefix="login_")
     _, center_col, _ = st.columns([1, 1.5, 1])
-    
     with center_col:
-        st.markdown(f"<h3 style='text-align: center; color: #1a73e8;'>{T_login.get('login_title', '🔑 BDR Authentication')}</h3>", unsafe_allow_html=True)
+        # Título actualizado a DCE (Digital Customer Engineer)
+        st.markdown(f"<h3 style='text-align: center; color: #1a73e8;'>{T_login.get('login_title', '🔑 DCE Authentication')}</h3>", unsafe_allow_html=True)
+        
         with st.container(border=True):
             bms_input = st.text_input(T_login.get("login_input", ""), key="login_bms_input")
+            
             if st.button(T_login.get("login_btn", "Access"), use_container_width=True, type="primary"):
-                if len(bms_input.strip()) >= 3:
-                    SessionManager.set_bms_id(bms_input.strip())
-                    SessionManager.set_language(login_lang)
-                    logger.info(f"User logged in: {bms_input.strip()}")
+                clean_input = bms_input.strip()
+                
+                # 1. Validar que el campo no esté vacío
+                if not clean_input:
+                    st.warning("Por favor, ingresa tu ID." if login_lang == "Spanish" else "Please enter your ID.")
+                
+                # 2. Validar que SEAN SOLO NÚMEROS
+                elif not clean_input.isdigit():
+                    st.error("El ID solo debe contener números. Revisa que no haya letras o espacios." if login_lang == "Spanish" else "The ID must contain numbers only. Please check for letters or spaces.")
+                
+                # 3. Validar longitud mínima
+                elif len(clean_input) < 3:
+                    st.warning("El ID debe tener al menos 3 dígitos." if login_lang == "Spanish" else "ID must be at least 3 digits.")
+                
+                # 4. Si todo está correcto, iniciar sesión
+                else:
+                    SessionManager.set_bms_id(clean_input)
+                    SessionManager.set_language(login_lang) # Ensure language is set on successful login
+                    logger.info(f"User logged in: {clean_input}")
                     st.rerun()
     st.stop()
 

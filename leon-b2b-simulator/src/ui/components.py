@@ -36,9 +36,9 @@ def render_header(info_text: str = "", key_prefix: str = ""):
     # Look for the project image in assets
     img_base64 = get_image_base64("assets/project_hero.png")
 
-    # Current language from session state
-    lang_choice = st.session_state.get(f"{key_prefix}language_selector", "English")
-    T = UI_TEXTS[lang_choice]
+    # 1. READ GLOBAL LANGUAGE STATE
+    lang_choice = st.session_state.get("language_selector", "English")
+    T = UI_TEXTS.get(lang_choice, UI_TEXTS["English"])
 
     # Container for the Hero Field
     with st.container(border=True):
@@ -63,35 +63,49 @@ def render_header(info_text: str = "", key_prefix: str = ""):
             )
             
         with col_side:
+            # 2. SYNC LANGUAGE UPON CHANGE
+            def sync_language():
+                st.session_state["language_selector"] = st.session_state[f"{key_prefix}language_selector"]
+
             # Language Selector on top
-            st.selectbox("Select Language", ["English", "Spanish", "Portuguese"], label_visibility="collapsed", key=f"{key_prefix}language_selector")
+            lang_options = ["English", "Spanish", "Portuguese"]
+            idx = lang_options.index(lang_choice) if lang_choice in lang_options else 0
+            
+            st.selectbox(
+                "Select Language", 
+                lang_options, 
+                index=idx,
+                label_visibility="collapsed", 
+                key=f"{key_prefix}language_selector",
+                on_change=sync_language
+            )
             
             # --- PERSISTENT MODE SELECTOR ---
             with st.popover(f"{T.get('mode_btn', 'Mode')} ⚙️", use_container_width=True):
                 st.markdown(f"**{T.get('mode_btn', 'Mode')} Select**")
                 
                 modes = (T["mode_classic_title"], T["mode_live_title"])
-                
-                # Handle legacy mode names for smooth transition
                 current_mode = st.session_state.get("app_mode", modes[0])
-                if current_mode == "Classic MVP":
-                    current_mode = modes[0]
-                elif current_mode == "Live Mode (Sprint 1 Test)":
-                    current_mode = modes[1]
-
-                try:
-                    current_index = modes.index(current_mode)
-                except ValueError:
-                    current_index = 0 # Default to first mode if not found
+                
+                # 3. FIX MODE RESET ACROSS LANGUAGES
+                all_live_strings = [
+                    UI_TEXTS["English"]["mode_live_title"],
+                    UI_TEXTS["Spanish"]["mode_live_title"],
+                    UI_TEXTS["Portuguese"]["mode_live_title"],
+                    "Live Mode (Sprint 1 Test)"
+                ]
+                
+                current_index = 1 if current_mode in all_live_strings else 0
 
                 new_mode = st.radio(
                     "Simulation Mode",
                     modes,
                     index=current_index,
                     label_visibility="collapsed",
-                    key="app_mode_radio_internal"
+                    key=f"{key_prefix}app_mode_radio_internal"
                 )
                 
+                # Only update and rerun if the actual selection changed
                 if new_mode != current_mode:
                     st.session_state.app_mode = new_mode
                     st.rerun()
