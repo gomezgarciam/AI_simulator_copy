@@ -106,7 +106,7 @@ UI_TEXTS = {
         "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"],
 
         "mode_btn": "Mode",
-        "mode_classic_title": "Assisted Mode",
+        "mode_classic_title": "Modo Assistido",
         "mode_classic_desc": "Assisted simulation with a side-by-side chat assistant for live coaching.",
         "mode_live_title": "Live Mode",
         "mode_live_desc": "A distraction-free, voice-only interface focused purely on the live conversation with Alex.",
@@ -176,13 +176,13 @@ UI_TEXTS = {
         "pdf_empty": "No se pudo extraer texto legible del PDF cargado.",
 
         # Assistant
-        "assistant_title": "Sales Assistant",
+        "assistant_title": "Asistente de ventas",
         "assistant_subtitle": "Ayuda en vivo durante el roleplay",
         "assistant_input": "Pide orientación con base en la conversación en vivo y en los materiales FY26",
         "assistant_placeholder": "Ej: ¿Cómo debería posicionar GCP aquí?",
-        "assistant_button": "Preguntar al Assistant",
+        "assistant_button": "Preguntar al Asistente",
         "assistant_sources": "Fuentes utilizadas:",
-        "assistant_empty_state": "Pregunta por posicionamiento, discovery, objeciones, próximos pasos o plays FY26.",
+        "assistant_empty_state": "Pregunta por posicionamiento, descubrimiento, objeciones, próximos pasos o plays FY26.",
         "assistant_loading": "Pensando...",
         "assistant_error": "Error en el asistente de ventas:",
         "assistant_connected": "Conocimiento interno FY26 conectado",
@@ -216,10 +216,10 @@ UI_TEXTS = {
         "simulator_info": "Este simulador recrea conversaciones de ventas enterprise y ofrece guía en tiempo real.",
 
         "hero_subtitle": "Un marco de entrenamiento profesional diseñado para perfeccionar discovery B2B de alto nivel mediante simulación realista del comportamiento de compradores. El éxito en este entorno desafiante se logra solo al presentar estratégicamente al menos tres servicios de Google, cada uno adaptado al contexto de negocio específico de la empresa—integrando el Conocimiento de Ventas oficial de Google FY26 Campaign Plays.",
-        "hero_badges": ["Multilingüe", "Habilitado por Voz", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Coaching en Vivo"],
+        "hero_badges": ["Multilingüe", "Habilitado por Voz", "Conocimiento FY26 Plays ", "Desarrollado con VertexAI+Gemini 2.5", "Coaching en Vivo"],
 
         "mode_btn": "Modo",
-        "mode_classic_title": "Assisted Mode",
+        "mode_classic_title": "Modo asistido",
         "mode_classic_desc": "Simulación asistida con un chat de asesoramiento en tiempo real.",
         "mode_live_title": "Modo en Vivo",
         "mode_live_desc": "Interfaz sin distracciones centrada puramente en la conversación en vivo con Alex.",
@@ -289,28 +289,28 @@ UI_TEXTS = {
         "pdf_empty": "Não foi possível extrair texto legível do PDF enviado.",
 
         # Assistant
-        "assistant_title": "Sales Assistant",
+        "assistant_title": "Assistente de Vendas",
         "assistant_subtitle": "Ajuda ao vivo durante o roleplay",
         "assistant_input": "Peça orientação com base na conversa ao vivo e nos materiais FY26",
         "assistant_placeholder": "Ex: Como devo posicionar GCP aqui?",
         "assistant_button": "Perguntar ao Assistant",
         "assistant_sources": "Fuentes usadas:",
-        "assistant_empty_state": "Pergunte sobre posicionamiento, discovery, objeciones, próximos passos ou plays FY26.",
+        "assistant_empty_state": "Pergunte sobre posicionamiento, descoberta, objeciones, próximos passos ou plays FY26.",
         "assistant_loading": "Pensando...",
         "assistant_error": "Erro no assistente de ventas:",
         "assistant_connected": "Conhecimento interno FY26 conectado",
 
         # UI Sections
         "roleplay_header": "Roleplay de cliente ao vivo",
-        "roleplay_subtitle": "Simule uma conversa real de vendas enterprise with a target role-constrained executive.",
-        "roleplay_tip": "Simule uma cold call com um prospect cético. Você deve conectar seu pitch à empresa e presentar pelo menos 3 produtos de GCP.",
+        "roleplay_subtitle": "Simule uma conversa real de vendas corporativas com um executivo alvo com restrição de função.",
+        "roleplay_tip": "Simule uma chama fria com um prospect cético. Você deve conectar seu pitch à empresa e presentar pelo menos 3 produtos de GCP.",
 
         "scenario_preview": "Prévia do cenário",
         "scenario_subtitle": "Prévia do contexto da simulação.",
 
         "company": "Empresa",
         "role": "Papel",
-        "language": "Idioma",
+        "language": "Linguagem",
         "additional_context": "Contexto adicional",
         "presentation_language": "Idioma de apresentação",
 
@@ -329,10 +329,10 @@ UI_TEXTS = {
         "simulator_info": "Este simulador recria conversas de vendas empresariais e oferece orientação em tempo real..",
 
         "hero_subtitle": "Uma estrutura de treinamento profissional projetada para aprimorar a descoberta B2B de alto nível por meio da simulação realista do comportamento do comprador. O sucesso nesse ambiente desafiador só é alcançado apresentando estrategicamente pelo menos três serviços do Google, cada um adaptado ao contexto de negócios específico da empresa — integrando o conhecimento de vendas das Campanhas Oficiais do Google para o Ano Fiscal de 2026.",
-        "hero_badges": ["Multilíngue", "Habilitado por Voz", "Conhecimento de peças do ano fiscal de 2026", "Powered by VertexAI+Gemini 2.5", "Coaching ao Vivo"],
+        "hero_badges": ["Multilíngue", "Habilitado por Voz", "Conhecimento de peças do ano fiscal de 2026", "Desenvolvido por VertexAI+Gemini 2.5", "Coaching ao Vivo"],
 
         "mode_btn": "Modo",
-        "mode_classic_title": "Assisted Mode",
+        "mode_classic_title": "Modo Assistido",
         "mode_classic_desc": "Simulación asistida con chat de orientación al lado para coaching ao vivo.",
         "mode_live_title": "Modo ao Vivo",
         "mode_live_desc": "Interface sem distrações focada puramente na conversa ao vivo con Alex.",    }
