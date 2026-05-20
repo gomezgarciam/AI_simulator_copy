@@ -1,7 +1,7 @@
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
-from src.rag.context_builder import build_assistant_context
 from src.prompts.assistant import create_sales_assistant_prompt
+from src.rag.context_builder import build_assistant_context
 from src.services.genai_service import generate_content
 
 
@@ -153,10 +153,13 @@ def generate_sales_assistant_response(
         question_mode=question_mode,
     )
 
-    answer = generate_content(
-        genai_client,
-        model_id,
-        assistant_prompt,
-    ) or "No response generated."
+    answer = (
+        generate_content(
+            genai_client,
+            model_id,
+            assistant_prompt,
+        )
+        or "No response generated."
+    )
 
     return answer, sources

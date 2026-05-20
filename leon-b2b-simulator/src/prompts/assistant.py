@@ -6,12 +6,12 @@ def create_sales_assistant_prompt(
     retrieved_context,
     uploaded_company_context=None,
     language="English",
-    question_mode="auto"
+    question_mode="auto",
 ):
     session_language_instruction = {
         "English": "The session default language is English.",
         "Spanish": "The session default language is Spanish.",
-        "Portuguese": "The session default language is Portuguese."
+        "Portuguese": "The session default language is Portuguese.",
     }.get(language, "The session default language is English.")
 
     uploaded_context_block = (

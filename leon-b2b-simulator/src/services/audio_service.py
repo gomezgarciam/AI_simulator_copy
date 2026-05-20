@@ -1,6 +1,8 @@
 import io
-from typing import Optional, Any
+from typing import Any, Optional
+
 from pydub import AudioSegment
+
 
 def load_audiosegment_from_streamlit_audio(audio_file: Any) -> Optional[AudioSegment]:
     """
@@ -34,7 +36,12 @@ def load_audiosegment_from_streamlit_audio(audio_file: Any) -> Optional[AudioSeg
         fmt = "mp3"
     elif "ogg" in mime_type or name.endswith(".ogg"):
         fmt = "ogg"
-    elif "mp4" in mime_type or "m4a" in mime_type or name.endswith(".m4a") or name.endswith(".mp4"):
+    elif (
+        "mp4" in mime_type
+        or "m4a" in mime_type
+        or name.endswith(".m4a")
+        or name.endswith(".mp4")
+    ):
         fmt = "mp4"
 
     audio_buffer = io.BytesIO(raw_bytes)
@@ -44,7 +51,7 @@ def load_audiosegment_from_streamlit_audio(audio_file: Any) -> Optional[AudioSeg
             seg = AudioSegment.from_file(audio_buffer, format=fmt)
         else:
             seg = AudioSegment.from_file(audio_buffer)
-        
+
         return seg.set_channels(1).set_frame_rate(44100)
     except Exception as e:
         print(f"Error converting audio to AudioSegment: {e}")

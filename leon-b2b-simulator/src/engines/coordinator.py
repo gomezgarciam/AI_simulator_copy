@@ -1,12 +1,19 @@
 import io
-from typing import Dict, Any, List, Optional, Tuple
-from src.services.genai_service import generate_content
-from src.services.speech_service import transcribe_audio, synthesize_speech
-from src.services.audio_service import load_audiosegment_from_streamlit_audio
-from src.engines.roleplay_engine import get_or_create_roleplay_session, send_roleplay_message
-from src.evaluation.rubric_engine import evaluate_transcript, format_transcript_from_messages
-from src.services.db_service import save_simulation_to_bq
+from typing import Any, Dict, List, Optional, Tuple
+
 from src.config.settings import settings
+from src.engines.roleplay_engine import (
+    get_or_create_roleplay_session,
+    send_roleplay_message,
+)
+from src.evaluation.rubric_engine import (
+    evaluate_transcript,
+    format_transcript_from_messages,
+)
+from src.services.audio_service import load_audiosegment_from_streamlit_audio
+from src.services.db_service import save_simulation_to_bq
+from src.services.speech_service import synthesize_speech, transcribe_audio
+
 
 class SimulationCoordinator:
     """
@@ -19,11 +26,7 @@ class SimulationCoordinator:
         self.speech_client = speech_client
         self.tts_client = tts_client
 
-    def process_user_audio(
-        self, 
-        audio_val: Any, 
-        language: str
-    ) -> Optional[str]:
+    def process_user_audio(self, audio_val: Any, language: str) -> Optional[str]:
         """Loads and transcribes user audio."""
         seg = load_audiosegment_from_streamlit_audio(audio_val)
         if seg is None:
@@ -42,7 +45,7 @@ class SimulationCoordinator:
         role: str,
         pdf_summary: Optional[str] = None,
         company_url: Optional[str] = None,
-        stop_phrase: str = "FINISH_CALL"
+        stop_phrase: str = "FINISH_CALL",
     ) -> Tuple[str, Optional[bytes], bool]:
         """
         Communicates with Alex (Gemini) and synthesizes audio response.
@@ -59,13 +62,11 @@ class SimulationCoordinator:
                 language=language,
                 stop_phrase=stop_phrase,
                 pdf_summary=pdf_summary,
-                company_url=company_url
+                company_url=company_url,
             )
 
         response_ai, _ = send_roleplay_message(
-            chat_session=chat_session,
-            user_text=user_text,
-            language=language
+            chat_session=chat_session, user_text=user_text, language=language
         )
 
         if not response_ai or not response_ai.text:
@@ -74,15 +75,13 @@ class SimulationCoordinator:
         ai_text = response_ai.text
         is_finished = stop_phrase in ai_text
         clean_text = ai_text.replace(stop_phrase, "").strip()
-        
+
         audio_response = synthesize_speech(self.tts_client, clean_text, language)
-        
+
         return clean_text, audio_response, is_finished
 
     def run_evaluation_and_save(
-        self, 
-        messages: List[Dict[str, str]], 
-        session_data: Dict[str, Any]
+        self, messages: List[Dict[str, str]], session_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Runs the final MEDPICC evaluation and saves results to BigQuery.
@@ -90,12 +89,9 @@ class SimulationCoordinator:
         transcript = format_transcript_from_messages(messages)
         # Añadimos "bdr_qa_rubric_v1" al final
         report = evaluate_transcript(
-            transcript, 
-            self.genai_client, 
-            settings.MODEL_ID,
-            "bdr_qa_rubric_v1"
+            transcript, self.genai_client, settings.MODEL_ID, "bdr_qa_rubric_v1"
         )
-        
+
         # Prepare payload for BQ
         payload = {
             "bms_id": session_data.get("bms_id", "UNKNOWN"),
@@ -105,8 +101,8 @@ class SimulationCoordinator:
             "final_score": report.get("final_score", 0),
             "status": report.get("status", ""),
             "detailed_evaluation": report.get("evaluations", []),
-            "transcript": transcript
+            "transcript": transcript,
         }
-        
+
         save_simulation_to_bq(payload)
         return report

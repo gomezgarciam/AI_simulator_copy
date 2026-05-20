@@ -1,16 +1,19 @@
-from google.cloud import bigquery
-import json
 import datetime
-from typing import Dict, Any, List
+import json
+from typing import Any, Dict, List
+
+from google.cloud import bigquery
 from pydantic import BaseModel, Field
+
 from src.config.settings import settings
 from src.utils.logger import logger
-from src.utils.exceptions import DatabaseError
+
 
 class SimulationResult(BaseModel):
     """
     Schema validation for simulation results.
     """
+
     bms_id: str = Field(default="UNKNOWN")
     sim_mode: str = Field(default="Unknown")
     target_company: str = Field(default="")
@@ -19,7 +22,10 @@ class SimulationResult(BaseModel):
     status: str = Field(default="")
     detailed_evaluation: List[Dict[str, Any]] = Field(default_factory=list)
     transcript: str = Field(default="")
-    timestamp: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
+    timestamp: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
 
 def save_simulation_to_bq(payload: Dict[str, Any]) -> bool:
     """
@@ -28,7 +34,7 @@ def save_simulation_to_bq(payload: Dict[str, Any]) -> bool:
     try:
         # Validate
         result = SimulationResult(**payload)
-        
+
         client = bigquery.Client(project=settings.GOOGLE_CLOUD_PROJECT)
         table_id = f"{settings.GOOGLE_CLOUD_PROJECT}.{settings.BIGQUERY_DATASET}.{settings.BIGQUERY_TABLE}"
 
@@ -42,19 +48,19 @@ def save_simulation_to_bq(payload: Dict[str, Any]) -> bool:
                 "final_score": result.final_score,
                 "status": result.status,
                 "detailed_evaluation": json.dumps(result.detailed_evaluation),
-                "transcript": result.transcript
+                "transcript": result.transcript,
             }
         ]
 
         errors = client.insert_rows_json(table_id, row_to_insert)
-        
+
         if not errors:
             logger.info(f"Successfully saved simulation for BMS ID: {result.bms_id}")
             return True
         else:
             logger.error(f"BigQuery insertion errors: {errors}")
             return False
-            
+
     except Exception as e:
         logger.error(f"Critical error saving to BigQuery: {e}")
         # We don't raise here to avoid crashing the main app flow

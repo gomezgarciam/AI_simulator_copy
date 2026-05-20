@@ -1,7 +1,6 @@
-from google.cloud import speech
-from google.cloud import texttospeech
-from src.config.settings import GOOGLE_CLOUD_PROJECT
+from google.cloud import speech, texttospeech
 
+from src.config.settings import GOOGLE_CLOUD_PROJECT
 
 LANGUAGE_CODES = {
     "English": "en-US",
@@ -71,9 +70,7 @@ def synthesize_speech(tts_client, text: str, language: str) -> bytes:
             language_code=language_code,
             name=voice_name,
         ),
-        audio_config=texttospeech.AudioConfig(
-            audio_encoding="MP3"
-        ),
+        audio_config=texttospeech.AudioConfig(audio_encoding="MP3"),
     )
 
     return response.audio_content

@@ -1,6 +1,9 @@
+from typing import Any, Dict, Optional
+
 import streamlit as st
-from typing import Any, Dict, List, Optional
+
 from src.ui.texts import UI_TEXTS
+
 
 class SessionManager:
     """
@@ -63,10 +66,15 @@ class SessionManager:
     def clear(cls):
         """Reset all simulation related keys."""
         keys_to_reset = [
-            cls.TARGET_COMPANY, cls.ROLE, cls.MESSAGES, 
-            cls.ASSISTANT_MESSAGES, cls.CHAT_SESSION, 
-            cls.LAST_AUDIO, cls.USER_AUDIO_DEBUG,
-            cls.PDF_SUMMARY, cls.COMPANY_URL
+            cls.TARGET_COMPANY,
+            cls.ROLE,
+            cls.MESSAGES,
+            cls.ASSISTANT_MESSAGES,
+            cls.CHAT_SESSION,
+            cls.LAST_AUDIO,
+            cls.USER_AUDIO_DEBUG,
+            cls.PDF_SUMMARY,
+            cls.COMPANY_URL,
         ]
         for key in keys_to_reset:
             if key in st.session_state:

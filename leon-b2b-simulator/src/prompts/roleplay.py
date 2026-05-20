@@ -1,21 +1,15 @@
-
-def create_system_prompt(target_company, role, language, stop_phrase, extra_context=None):
+def create_system_prompt(
+    target_company, role, language, stop_phrase, extra_context=None
+):
     """
     Dynamic system prompt for the roleplay agent (Alex).
     Alex is the prospect in the simulation.
     """
 
-    col_names = {
-        "English": ["Category", "Rating", "Strengths", "Improvements", "Example"],
-        "Spanish": ["Categoría", "Calificación", "Fortalezas", "Mejoras", "Ejemplo"],
-        "Portuguese": ["Categoria", "Avaliação", "Pontos Fortes", "Melhorias", "Exemplo"]
-    }
-    cols = col_names.get(language, col_names["English"])
-
     success_responses = {
         "English": "Ok, sounds interesting but I don't have more time right now, how could we proceed?",
         "Spanish": "Vale, suena interesante pero no tengo más tiempo ahora mismo, ¿cómo podríamos proceder?",
-        "Portuguese": "Ok, parece interessante, mas não tenho mais tempo agora, como poderíamos proceder?"
+        "Portuguese": "Ok, parece interessante, mas não tenho mais tempo agora, como poderíamos proceder?",
     }
     success_msg = success_responses.get(language, success_responses["English"])
 
@@ -132,7 +126,7 @@ You are a strategic business leader.
 - "How does this help us grow or move faster?"
 - "Why should this be a priority now?"
 - "How does this improve customer or market outcomes?"
-"""
+""",
     }
 
     default_role_guidance = f"""
@@ -154,7 +148,9 @@ You are a senior stakeholder with priorities aligned to your role.
 - Redirect to the priorities of your function.
 """
 
-    selected_role_guidance = role_specific_guidance.get(role_upper, default_role_guidance)
+    selected_role_guidance = role_specific_guidance.get(
+        role_upper, default_role_guidance
+    )
 
     optional_context_section = ""
     if extra_context:
@@ -174,10 +170,12 @@ You are Alex, an advanced AI sales roleplay persona in a B2B simulation.
 ### YOUR PERSONA
 - Name: Alex
 - Role: {role} at {target_company}
-- Language: You MUST respond exclusively in {language.upper()}
 - Tone: concise, skeptical, professional, busy, realistic
 - Attitude: impatient with generic pitches, but open to relevant ideas
 - Behavior: challenge vague claims, ask practical follow-up questions, and act like a real buyer
+
+IMPORTANT RULE: You MUST speak, reply, and interact EXCLUSIVELY in the following language: {language}.
+Do not use English unless the specified language is English.
 
 {selected_role_guidance}
 
@@ -205,13 +203,13 @@ If the BDR is vague, ask skeptical follow-up questions such as:
 ### WINNING CONDITION
 The BDR must go beyond generic product mentions.
 
-To perform well, the BDR must present a solution involving at least 3 Google Cloud services.
+To perform well, the BDR must present a solution involving at least 2 Google Cloud services.
 
 For each relevant service, the BDR should explain:
 1. How it fits into the current stack, workflow, or business process
 2. What concrete value it creates
 
-Only after the BDR has clearly connected 3 or more services to implementation logic and business value, respond with exactly:
+Only after the BDR has clearly connected 2 or more services to implementation logic and business value, respond with exactly:
 "{success_msg}"
 
 {optional_context_section}
@@ -233,7 +231,6 @@ Do NOT output JSON or any evaluation metrics. Just the farewell and FINISH_CALL.
 """
 
 
-
 def create_sales_assistant_prompt(
     question,
     roleplay_history,
@@ -242,7 +239,7 @@ def create_sales_assistant_prompt(
     retrieved_context,
     uploaded_company_context=None,
     language="English",
-    question_mode="auto"
+    question_mode="auto",
 ):
     """
     Prompt for the right-side Sales Assistant.
@@ -254,7 +251,7 @@ def create_sales_assistant_prompt(
     session_language_instruction = {
         "English": "The session default language is English.",
         "Spanish": "The session default language is Spanish.",
-        "Portuguese": "The session default language is Portuguese."
+        "Portuguese": "The session default language is Portuguese.",
     }.get(language, "The session default language is English.")
 
     uploaded_context_block = (
@@ -385,6 +382,7 @@ Additional rules for knowledge chat mode:
 - Use coaching format only when the question is actually about the live roleplay.
 - Always match the language of the user question, including section titles if used.
 """
+
 
 def create_document_assistant_prompt(question, retrieved_context):
     return f"""

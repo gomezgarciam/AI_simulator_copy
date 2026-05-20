@@ -1,24 +1,28 @@
 import asyncio
+import base64
 import json
 import queue
 import threading
-import base64
-import traceback
-from typing import Optional, Any, List, Dict
+from typing import Any, Dict, Optional
 
+import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import speech
-import uvicorn
 
 from src.config.settings import settings
-from src.utils.logger import logger
-from src.utils.exceptions import AIServiceError, DatabaseError
-from src.services.speech_service import get_speech_clients, synthesize_speech
-from src.services.genai_service import get_genai_client
-from src.engines.roleplay_engine import get_or_create_roleplay_session, send_roleplay_message
-from src.evaluation.rubric_engine import evaluate_transcript, format_transcript_from_messages
+from src.engines.roleplay_engine import (
+    get_or_create_roleplay_session,
+    send_roleplay_message,
+)
+from src.evaluation.rubric_engine import (
+    evaluate_transcript,
+    format_transcript_from_messages,
+)
 from src.services.db_service import save_simulation_to_bq
+from src.services.genai_service import get_genai_client
+from src.services.speech_service import get_speech_clients, synthesize_speech
+from src.utils.logger import logger
 
 app = FastAPI(title="BDR Simulator Live API")
 
@@ -30,14 +34,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-LANGUAGE_MAPPING = {
-    "English": "en-US",
-    "Spanish": "es-ES",
-    "Portuguese": "pt-BR"
-}
+LANGUAGE_MAPPING = {"English": "en-US", "Spanish": "es-ES", "Portuguese": "pt-BR"}
+
 
 class SpeechStreamer:
-    def __init__(self, language: str, metadata: Dict[str, Any], websocket: WebSocket, loop: asyncio.AbstractEventLoop):
+    def __init__(
+        self,
+        language: str,
+        metadata: Dict[str, Any],
+        websocket: WebSocket,
+        loop: asyncio.AbstractEventLoop,
+    ):
         self.language = language
         self.language_code = LANGUAGE_MAPPING.get(language, "en-US")
         self.sample_rate = metadata.get("sample_rate", 16000)
@@ -48,13 +55,17 @@ class SpeechStreamer:
         self.stt_running = False
         self.chunk_count = 0
 
-        logger.info(f"🎤 Initializing SpeechStreamer: Lang={self.language_code}, Rate={self.sample_rate}")
-        
+        logger.info(
+            f"🎤 Initializing SpeechStreamer: Lang={self.language_code}, Rate={self.sample_rate}"
+        )
+
         self.client = speech.SpeechClient(
             client_options={"quota_project_id": settings.GOOGLE_CLOUD_PROJECT}
         )
 
-        self.genai_client = get_genai_client(settings.GOOGLE_CLOUD_PROJECT, settings.GOOGLE_CLOUD_LOCATION)
+        self.genai_client = get_genai_client(
+            settings.GOOGLE_CLOUD_PROJECT, settings.GOOGLE_CLOUD_LOCATION
+        )
         _, self.tts_client = get_speech_clients()
         self.chat_session = None
         self.metadata = metadata
@@ -88,25 +99,28 @@ class SpeechStreamer:
     def _handle_silence(self):
         if self.closed or not self.last_transcript or self.response_triggered:
             return
-        
+
         logger.info("🤫 Silence detected. Processing...")
         self.response_triggered = True
-        
+
         asyncio.run_coroutine_threadsafe(
-            self.process_and_respond(self.last_transcript),
-            self.loop
+            self.process_and_respond(self.last_transcript), self.loop
         )
 
     def _reset_silence_timer(self):
         if self.silence_timer:
             self.silence_timer.cancel()
-        
-        self.silence_timer = threading.Timer(self.silence_threshold, self._handle_silence)
+
+        self.silence_timer = threading.Timer(
+            self.silence_threshold, self._handle_silence
+        )
         self.silence_timer.start()
-        
+
         asyncio.run_coroutine_threadsafe(
-            self.safe_send({"type": "vad_timer_reset", "duration": self.silence_threshold}),
-            self.loop
+            self.safe_send(
+                {"type": "vad_timer_reset", "duration": self.silence_threshold}
+            ),
+            self.loop,
         )
 
     async def process_and_respond(self, user_text: str):
@@ -128,13 +142,13 @@ class SpeechStreamer:
                 target_company=self.metadata.get("target_company", "Google"),
                 role=self.metadata.get("role", "CTO"),
                 language=self.language,
-                stop_phrase=user_stop_phrase
+                stop_phrase=user_stop_phrase,
             )
-            
+
             response_ai, _ = send_roleplay_message(
                 chat_session=self.chat_session,
                 user_text=user_text,
-                language=self.language
+                language=self.language,
             )
 
             if response_ai and response_ai.text and not self.closed:
@@ -143,41 +157,53 @@ class SpeechStreamer:
 
                 if internal_stop_phrase in ai_text:
                     clean_ai_text = ai_text.replace(internal_stop_phrase, "").strip()
-                    audio_content = synthesize_speech(self.tts_client, clean_ai_text, self.language)
-                    await self.safe_send({
-                        "type": "alex_response",
-                        "transcript": clean_ai_text,
-                        "audio": base64.b64encode(audio_content).decode("utf-8")
-                    })
-                    
-                                        # Añadimos "bdr_qa_rubric_v1" al final
+                    audio_content = synthesize_speech(
+                        self.tts_client, clean_ai_text, self.language
+                    )
+                    await self.safe_send(
+                        {
+                            "type": "alex_response",
+                            "transcript": clean_ai_text,
+                            "audio": base64.b64encode(audio_content).decode("utf-8"),
+                        }
+                    )
+
+                    # Añadimos "bdr_qa_rubric_v1" al final
                     report = evaluate_transcript(
-                        format_transcript_from_messages(self.session_messages), 
-                        self.genai_client, 
+                        format_transcript_from_messages(self.session_messages),
+                        self.genai_client,
                         settings.MODEL_ID,
-                        "bdr_qa_rubric_v1"
+                        "bdr_qa_rubric_v1",
                     )
                     payload = {
                         "bms_id": self.metadata.get("bms_id", "UNKNOWN"),
                         "sim_mode": "Live Mode",
-                        "target_company": self.metadata.get("target_company", "UNKNOWN"),
+                        "target_company": self.metadata.get(
+                            "target_company", "UNKNOWN"
+                        ),
                         "role": self.metadata.get("role", "UNKNOWN"),
                         "final_score": report.get("final_score", 0),
                         "status": report.get("status", ""),
                         "detailed_evaluation": report.get("evaluations", []),
-                        "transcript": format_transcript_from_messages(self.session_messages)
+                        "transcript": format_transcript_from_messages(
+                            self.session_messages
+                        ),
                     }
                     await asyncio.to_thread(save_simulation_to_bq, payload)
 
                     await self.safe_send({"type": "session_report", "report": report})
                     return
 
-                audio_content = synthesize_speech(self.tts_client, ai_text, self.language)
-                await self.safe_send({
-                    "type": "alex_response",
-                    "transcript": ai_text,
-                    "audio": base64.b64encode(audio_content).decode("utf-8")
-                })
+                audio_content = synthesize_speech(
+                    self.tts_client, ai_text, self.language
+                )
+                await self.safe_send(
+                    {
+                        "type": "alex_response",
+                        "transcript": ai_text,
+                        "audio": base64.b64encode(audio_content).decode("utf-8"),
+                    }
+                )
         except Exception as e:
             logger.error(f"Error in process_and_respond: {e}")
             await self.safe_send({"type": "error", "message": str(e)})
@@ -194,42 +220,70 @@ class SpeechStreamer:
             language_code=self.language_code,
             enable_automatic_punctuation=True,
         )
-        streaming_config = speech.StreamingRecognitionConfig(config=recognition_config, interim_results=True)
+        streaming_config = speech.StreamingRecognitionConfig(
+            config=recognition_config, interim_results=True
+        )
 
         def request_generator():
             for content in self.fill_buffer():
                 yield speech.StreamingRecognizeRequest(audio_content=content)
 
         try:
-            responses = self.client.streaming_recognize(config=streaming_config, requests=request_generator())
+            responses = self.client.streaming_recognize(
+                config=streaming_config, requests=request_generator()
+            )
             for response in responses:
-                if self.closed or self.response_triggered or self.is_processing or not response.results:
+                if (
+                    self.closed
+                    or self.response_triggered
+                    or self.is_processing
+                    or not response.results
+                ):
                     continue
 
                 result = response.results[0]
-                if not result.alternatives: continue
+                if not result.alternatives:
+                    continue
 
                 transcript = result.alternatives[0].transcript
                 is_final = result.is_final
                 self.last_transcript = transcript
 
                 asyncio.run_coroutine_threadsafe(
-                    self.safe_send({"type": "user_transcript", "transcript": transcript, "is_final": is_final}),
-                    self.loop
+                    self.safe_send(
+                        {
+                            "type": "user_transcript",
+                            "transcript": transcript,
+                            "is_final": is_final,
+                        }
+                    ),
+                    self.loop,
                 )
 
-                if not self.response_triggered: self._reset_silence_timer()
+                if not self.response_triggered:
+                    self._reset_silence_timer()
                 if is_final and not self.response_triggered:
-                    if self.silence_timer: self.silence_timer.cancel()
+                    if self.silence_timer:
+                        self.silence_timer.cancel()
                     self._handle_silence()
 
         except Exception as e:
             logger.error(f"STT Pipeline Error: {e}")
             # Filtramos los errores de silencio de Google STT para no reiniciar la pantalla
-            if "Timeout" not in str(e) and "400" not in str(e) and "Long duration" not in str(e):
-                asyncio.run_coroutine_threadsafe(self.safe_send({"type": "error", "message": f"STT error: {str(e)}"}), self.loop)
+            if (
+                "Timeout" not in str(e)
+                and "400" not in str(e)
+                and "Long duration" not in str(e)
+            ):
+                asyncio.run_coroutine_threadsafe(
+                    self.safe_send(
+                        {"type": "error", "message": f"STT error: {str(e)}"}
+                    ),
+                    self.loop,
+                )
         finally:
             self.stt_running = False
+
 
 @app.websocket("/ws/live-transcribe")
 async def websocket_endpoint(websocket: WebSocket):
@@ -249,8 +303,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
         while True:
             msg = await websocket.receive()
-            if msg.get("type") == "websocket.disconnect": break
-            if msg.get("bytes"): streamer.audio_queue.put(msg["bytes"])
+            if msg.get("type") == "websocket.disconnect":
+                break
+            if msg.get("bytes"):
+                streamer.audio_queue.put(msg["bytes"])
     except WebSocketDisconnect:
         logger.info("🔌 WebSocket: Disconnected.")
     except Exception as e:
@@ -260,9 +316,11 @@ async def websocket_endpoint(websocket: WebSocket):
             streamer.closed = True
             streamer.audio_queue.put(None)
 
+
 @app.get("/")
 async def root():
     return {"status": "Backend Active"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

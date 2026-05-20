@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict
+from typing import Dict, List
 
 
 def tokenize(text: str) -> set:
@@ -14,7 +14,9 @@ def score_chunk(question: str, chunk: str) -> int:
     return len(q_tokens.intersection(c_tokens))
 
 
-def retrieve_relevant_chunks(question: str, chunk_index: List[Dict], top_k: int = 4) -> List[Dict]:
+def retrieve_relevant_chunks(
+    question: str, chunk_index: List[Dict], top_k: int = 4
+) -> List[Dict]:
     scored = []
 
     for chunk in chunk_index:

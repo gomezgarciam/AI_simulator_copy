@@ -1,11 +1,15 @@
 import json
-from src.utils.logger import logger
-from typing import Dict, Any, List
-from src.prompts.rubric_feedback_prompt import create_rubric_feedback_prompt
+from typing import Any, Dict, List
+
 from src.evaluation.rubric_config import load_rubric_config
 from src.evaluation.scoring_engine import compute_final_score
+from src.prompts.rubric_feedback_prompt import create_rubric_feedback_prompt
+from src.utils.logger import logger
 
-def evaluate_transcript(transcript: str, genai_client: Any, model_id: str, rubric_name: str) -> Dict[str, Any]:
+
+def evaluate_transcript(
+    transcript: str, genai_client: Any, model_id: str, rubric_name: str
+) -> Dict[str, Any]:
     """
     Orchestrates the evaluation process:
     1. Loads the rubric.
@@ -26,8 +30,8 @@ def evaluate_transcript(transcript: str, genai_client: Any, model_id: str, rubri
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
-                "temperature": 0.2, # Lower temperature for consistency
-            }
+                "temperature": 0.2,  # Lower temperature for consistency
+            },
         )
 
         if not response or not response.text:
@@ -53,8 +57,9 @@ def evaluate_transcript(transcript: str, genai_client: Any, model_id: str, rubri
             "error_message": str(e),
             "final_score": 0,
             "evaluations": [],
-            "final_comment": "An error occurred during evaluation."
+            "final_comment": "An error occurred during evaluation.",
         }
+
 
 def format_transcript_from_messages(messages: List[Dict[str, str]]) -> str:
     """

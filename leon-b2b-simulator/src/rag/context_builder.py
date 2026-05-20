@@ -1,9 +1,11 @@
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 from src.rag.retrieval import retrieve_relevant_chunks
 
 
-def build_assistant_context(question: str, chunk_index: List[Dict], top_k: int = 4) -> Tuple[str, List[str]]:
+def build_assistant_context(
+    question: str, chunk_index: List[Dict], top_k: int = 4
+) -> Tuple[str, List[str]]:
     relevant_chunks = retrieve_relevant_chunks(question, chunk_index, top_k=top_k)
 
     if not relevant_chunks:
