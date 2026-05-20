@@ -106,7 +106,7 @@ UI_TEXTS = {
         "hero_badges": ["Multilingual", "Voice Enabled", "FY26 Plays Knowledge", "Powered by VertexAI+Gemini 2.5", "Live Coaching"],
 
         "mode_btn": "Mode",
-        "mode_classic_title": "Modo Assistido",
+        "mode_classic_title": "Assisted Mode",
         "mode_classic_desc": "Assisted simulation with a side-by-side chat assistant for live coaching.",
         "mode_live_title": "Live Mode",
         "mode_live_desc": "A distraction-free, voice-only interface focused purely on the live conversation with Alex.",
