@@ -25,10 +25,7 @@ def summarize_text(text, client, model_id, lang="English"):
 
     prompt = prompt_templates.get(lang, prompt_templates["English"]).format(text=text)
 
-    response = client.models.generate_content(
-        model=model_id,
-        contents=prompt
-    )
+    response = client.models.generate_content(model=model_id, contents=prompt)
     return response.text if hasattr(response, "text") and response.text else text
 
 

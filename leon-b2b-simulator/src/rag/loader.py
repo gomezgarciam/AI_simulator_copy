@@ -1,4 +1,5 @@
 import io
+
 from google.cloud import storage
 from pypdf import PdfReader
 
@@ -26,10 +27,7 @@ def load_internal_documents_from_gcs(bucket_name: str, prefix: str = ""):
             full_text = "\n".join(pages_text).strip()
 
             if full_text:
-                documents.append({
-                    "source": blob.name,
-                    "text": full_text
-                })
+                documents.append({"source": blob.name, "text": full_text})
 
         except Exception as e:
             print(f"Error loading {blob.name}: {e}")

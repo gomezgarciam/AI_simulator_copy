@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 DEFAULT_SESSION_VALUES = {
     "bms_id": None,
     "assistant_messages": [],
@@ -26,15 +25,15 @@ def initialize_session_state():
             st.session_state[key] = value
 
 
-def start_simulation_session(company: str, role: str, language: str, greeting: str, company_url: str = ""):
+def start_simulation_session(
+    company: str, role: str, language: str, greeting: str, company_url: str = ""
+):
     st.session_state.target_company = company
     st.session_state.role = role
     st.session_state.language = language
     st.session_state.company_url = company_url.strip() if company_url else ""
 
-    st.session_state.messages = [
-        {"role": "assistant", "content": greeting}
-    ]
+    st.session_state.messages = [{"role": "assistant", "content": greeting}]
     st.session_state.assistant_messages = []
     st.session_state.input_key = 0
     st.session_state.last_audio = None

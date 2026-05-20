@@ -1,16 +1,15 @@
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
-import os
+
 
 class Settings(BaseSettings):
     """
     Application settings managed via Pydantic.
     Environment variables will override these defaults.
     """
+
     model_config = SettingsConfigDict(
-        env_file=".env", 
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     # App Metadata
@@ -21,14 +20,14 @@ class Settings(BaseSettings):
     # Google Cloud Configuration
     GOOGLE_CLOUD_PROJECT: str = "b2b-agent-485013"
     GOOGLE_CLOUD_LOCATION: str = "us-central1"
-    
+
     # AI Models
     MODEL_ID: str = "gemini-2.5-flash"
 
     # Storage & RAG
     INTERNAL_DOCS_BUCKET: str = "bdr-simulator-internal-docs"
     INTERNAL_DOCS_PREFIX: str = "Plays/"
-    
+
     # Engine Hyperparameters
     ASSISTANT_TOP_K: int = 4
     ROLEPLAY_HISTORY_MAX_TURNS: int = 12
@@ -37,6 +36,7 @@ class Settings(BaseSettings):
     # BigQuery
     BIGQUERY_DATASET: str = "simulator_data"
     BIGQUERY_TABLE: str = "evaluations"
+
 
 # Create a singleton instance
 settings = Settings()

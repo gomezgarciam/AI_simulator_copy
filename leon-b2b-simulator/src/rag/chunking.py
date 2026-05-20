@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 
 def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200) -> List[str]:
@@ -33,10 +33,6 @@ def build_chunk_index(documents: List[Dict]) -> List[Dict]:
         chunks = chunk_text(text)
 
         for i, chunk in enumerate(chunks):
-            indexed_chunks.append({
-                "source": source,
-                "chunk_id": i,
-                "text": chunk
-            })
+            indexed_chunks.append({"source": source, "chunk_id": i, "text": chunk})
 
     return indexed_chunks

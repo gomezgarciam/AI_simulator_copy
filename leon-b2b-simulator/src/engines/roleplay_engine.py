@@ -12,9 +12,7 @@ def build_roleplay_extra_context(
     extra_context_parts = []
 
     if pdf_summary:
-        extra_context_parts.append(
-            f"Uploaded company research summary:\n{pdf_summary}"
-        )
+        extra_context_parts.append(f"Uploaded company research summary:\n{pdf_summary}")
 
     if company_url:
         extra_context_parts.append(
