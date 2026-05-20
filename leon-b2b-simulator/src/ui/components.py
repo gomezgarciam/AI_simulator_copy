@@ -5,6 +5,8 @@ from typing import Optional
 
 import streamlit as st
 import streamlit.components.v1 as components
+
+from src.services.session_manager import SessionManager
 from src.ui.texts import UI_TEXTS
 
 def live_mic_recorder(metadata: dict = None):
@@ -37,7 +39,7 @@ def render_header(info_text: str = "", key_prefix: str = ""):
     img_base64 = get_image_base64("assets/project_hero.png")
 
     # 1. READ GLOBAL LANGUAGE STATE
-    lang_choice = st.session_state.get("language_selector", "English")
+    lang_choice = st.session_state.get(SessionManager.LANGUAGE, "English")
     T = UI_TEXTS.get(lang_choice, UI_TEXTS["English"])
 
     # Container for the Hero Field
@@ -65,7 +67,7 @@ def render_header(info_text: str = "", key_prefix: str = ""):
         with col_side:
             # 2. SYNC LANGUAGE UPON CHANGE
             def sync_language():
-                st.session_state["language_selector"] = st.session_state[f"{key_prefix}language_selector"]
+                st.session_state[SessionManager.LANGUAGE] = st.session_state[f"{key_prefix}language_selector"]
 
             # Language Selector on top
             lang_options = ["English", "Spanish", "Portuguese"]

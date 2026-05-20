@@ -195,7 +195,11 @@ if st.session_state.get(SessionManager.TARGET_COMPANY) is None:
 # =========================================================
 current_mode = st.session_state.get(SessionManager.APP_MODE, T.get("mode_classic_title", "Assisted Mode"))
 
-if current_mode == T.get("mode_live_title", "Live Mode"):
+# 1. Creamos la lista maestra de identificadores para el Modo en Vivo
+live_mode_identifiers = ["Live Mode", "Modo en Vivo", "Modo ao Vivo"]
+
+# 2. Comparamos si la selección del usuario está DENTRO de esa lista
+if current_mode in live_mode_identifiers:
     render_header(info_text=T.get("simulator_info", ""), key_prefix="live_")
     st.title(f"Live Mode: {st.session_state.get(SessionManager.TARGET_COMPANY, '')}")
     
